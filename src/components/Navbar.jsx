@@ -151,6 +151,9 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
               <Link to="/chatbot" className={`nav-link ${path === '/chatbot' ? 'active' : ''}`}>
                 Chatbot
               </Link>
+              <Link to="/video-call" className={`nav-link ${path === '/video-call' ? 'active' : ''}`}>
+                📹 Video Call
+              </Link>
               <Link to="/resources" className={`nav-link ${path === '/resources' ? 'active' : ''}`}>
                 Resources
               </Link>
@@ -378,6 +381,10 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
               <Link to="/chatbot" className={`mobile-nav-link ${path === '/chatbot' ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="mn-icon">💬</span>
                 <span>AI Chatbot</span>
+              </Link>
+              <Link to="/video-call" className={`mobile-nav-link ${path === '/video-call' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                <span className="mn-icon">📹</span>
+                <span>Video Call</span>
               </Link>
               <Link to="/resources" className={`mobile-nav-link ${path === '/resources' ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="mn-icon">📚</span>

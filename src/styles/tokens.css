@@ -36,6 +36,12 @@
   --header-height: 68px;
   --sidebar-width: 220px;
   --content-max-width: 1500px;
+  --card-bg: #ffffff;
+  --card-bg-subtle: #f0f5f8;
+  --chat-bubble-bot: #f0f5f8;
+  --chat-bubble-bot-border: #e4ebef;
+  --chat-bubble-bot-text: #344653;
+  --chat-input-bg: #f8fafc;
 }
 
 /* Dark Theme Design System */
@@ -68,6 +74,12 @@ body.dark,
   --shadow-card: 0 4px 20px rgba(0, 5, 14, 0.5);
   --shadow-subtle: 0 2px 6px rgba(0, 5, 14, 0.35);
   --shadow-dropdown: 0 8px 28px rgba(0, 5, 14, 0.65);
+  --card-bg: #132235;
+  --card-bg-subtle: #1a2c42;
+  --chat-bubble-bot: #1a2c42;
+  --chat-bubble-bot-border: #1e3349;
+  --chat-bubble-bot-text: #e6f0f8;
+  --chat-input-bg: #0d1825;
 }
 
 /* Global Application Shell */

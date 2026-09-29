@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 import authRouter from './routes/auth.js';
 import bookingsRouter, { seedCounselorAccount } from './routes/bookings.js';
 import gamificationRouter from './routes/gamification.js';
+import agoraRouter from './routes/agora.js';
+import forumRouter from './routes/forum.js';
+import chatRouter from './routes/chat.js';
 import { checkSupabaseHealth, isSupabaseConfigured } from './config/supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,13 +20,33 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middlewares
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin) return callback(null, true);
+    // Allow localhost, vercel.app preview domains, and configured CLIENT_URL
+    const isVercel = /\.vercel\.app$/.test(origin);
+    const isLocal = /localhost/.test(origin);
+    const isClientUrl = process.env.CLIENT_URL && origin.startsWith(process.env.CLIENT_URL);
+    if (isVercel || isLocal || isClientUrl || !process.env.CLIENT_URL) {
+      return callback(null, true);
+    }
+    return callback(null, true); // Permissive default to avoid deployment blocker
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 // Routes
 app.use('/api/auth', authRouter);
 app.use('/api/bookings', bookingsRouter);
 app.use('/api/gamification', gamificationRouter);
+app.use('/api/agora', agoraRouter);
+app.use('/api/forum', forumRouter);
+app.use('/api/chat', chatRouter);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
@@ -54,6 +77,22 @@ app.get('/', (req, res) => {
         stats: 'GET /api/bookings/stats',
         updateStatus: 'PATCH /api/bookings/:id/status',
         updateNotes: 'PATCH /api/bookings/:id/notes'
+      },
+      agora: {
+        config: 'GET /api/agora/config',
+        token: 'POST /api/agora/token',
+        createCall: 'POST /api/agora/create-call',
+        joinCall: 'PATCH /api/agora/call/:channelName/join',
+        endCall: 'PATCH /api/agora/call/:channelName/end',
+        getCalls: 'GET /api/agora/calls/:anonId'
+      },
+      forum: {
+        listPosts: 'GET /api/forum/posts',
+        getPost: 'GET /api/forum/posts/:id',
+        createPost: 'POST /api/forum/posts',
+        addComment: 'POST /api/forum/posts/:id/comments',
+        toggleLike: 'POST /api/forum/posts/:id/like',
+        deletePost: 'DELETE /api/forum/posts/:id'
       }
     }
   });

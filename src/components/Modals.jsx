@@ -203,6 +203,7 @@ export default function Modals({ activeModal, closeModal, openModal }) {
       {activeModal === 'login' && (
         <div className="modal-overlay open" onClick={(e) => { if (e.target.className.includes('modal-overlay')) closeModal(); }}>
           <div className="modal modal-wide">
+            <button type="button" className="modal-close-btn" onClick={closeModal} title="Close modal" aria-label="Close">✕</button>
             <div className="modal-two-col">
               <div className="modal-form-side">
                 <div className="modal-logo-icon">🌿</div>
@@ -472,6 +473,7 @@ export default function Modals({ activeModal, closeModal, openModal }) {
       {activeModal === 'signup' && (
         <div className="modal-overlay open" onClick={(e) => { if (e.target.className.includes('modal-overlay')) closeModal(); }}>
           <div className="modal modal-wide">
+            <button type="button" className="modal-close-btn" onClick={closeModal} title="Close modal" aria-label="Close">✕</button>
             <div className="modal-two-col">
               <div className="modal-form-side">
                 <div className="modal-logo-icon">🌿</div>
@@ -809,6 +811,7 @@ export default function Modals({ activeModal, closeModal, openModal }) {
       {activeModal === 'success' && (
         <div className="modal-overlay open" onClick={(e) => { if (e.target.className.includes('modal-overlay')) closeModal(); }}>
           <div className="modal" style={{ maxWidth: '480px' }}>
+            <button type="button" className="modal-close-btn" onClick={closeModal} title="Close modal" aria-label="Close">✕</button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem', marginBottom: '.6rem' }}>
               <span style={{ fontSize: '1.4rem' }}>✅</span>
               <h3 style={{ margin: 0 }}>Registration Successful!</h3>

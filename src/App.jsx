@@ -12,6 +12,7 @@ import Resources from './pages/Resources';
 import Forum from './pages/Forum';
 import Gamification from './pages/Gamification';
 import CounselorProfile from './pages/CounselorProfile';
+import VideoCall from './pages/VideoCall';
 import EmergencyFooter from './components/EmergencyFooter';
 
 function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) {
@@ -38,14 +39,14 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
           }
         />
 
-        {/* Protected Student Portal Routes */}
+        {/* Student Portal Mental Wellness Chatbot (Anonymous Safe Space) */}
         <Route
           path="/chatbot"
-          element={
-            <ProtectedRoute openModal={openModal}>
-              <Chatbot />
-            </ProtectedRoute>
-          }
+          element={<Chatbot openModal={openModal} />}
+        />
+        <Route
+          path="/chat"
+          element={<Chatbot openModal={openModal} />}
         />
         {/* Counselor & Booking Routes */}
         <Route
@@ -157,6 +158,14 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
           }
         />
         <Route
+          path="/video-call"
+          element={
+            <ProtectedRoute openModal={openModal}>
+              <VideoCall />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/gamification"
           element={
             <ProtectedRoute openModal={openModal}>
@@ -178,15 +187,12 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
 function App() {
   const [theme, setTheme] = useState(() => {
     try {
-      const saved = localStorage.getItem('campuscare-theme');
-      if (saved === 'dark' || saved === 'light') return saved;
-      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
-      }
+      const explicit = localStorage.getItem('campuscare-theme-v2');
+      if (explicit === 'dark' || explicit === 'light') return explicit;
     } catch (e) {
       // fallback to light
     }
-    return 'light';
+    return 'light'; // Light theme is default
   });
 
   const [activeModal, setActiveModal] = useState(null);
@@ -202,7 +208,7 @@ function App() {
       document.body.classList.remove('dark');
     }
     try {
-      localStorage.setItem('campuscare-theme', theme);
+      localStorage.setItem('campuscare-theme-v2', theme);
     } catch (e) {
       // ignore storage errors
     }
