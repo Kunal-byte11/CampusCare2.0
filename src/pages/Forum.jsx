@@ -63,8 +63,8 @@ export default function Forum() {
   return (
     <div className="page active" id="page-forum">
       <div className="forum-layout">
-        <h2 style={{ fontFamily: '"Sora", sans-serif', fontSize: '1.8rem', color: 'var(--text)', marginBottom: '0.5rem' }}>Community Forum</h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>A safe space to share experiences and support each other anonymously.</p>
+        <h2 style={{ fontFamily: "'Inter', sans-serif", fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>Community Forum</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.75rem' }}>A safe space to share experiences and support each other anonymously.</p>
 
         <div className="forum-compose">
           <div className="fp-avatar">U</div>
@@ -76,7 +76,7 @@ export default function Forum() {
             onKeyDown={handleKey}
             placeholder="Share what's on your mind... (Press Enter to post)"
           />
-          <button className="btn-primary" onClick={handlePost} style={{ padding: '0.65rem 1.25rem', fontSize: '0.85rem' }}>Post Anonymously</button>
+          <button className="btn-primary" onClick={handlePost} style={{ padding: '0.55rem 1.15rem', fontSize: '0.85rem', borderRadius: 'var(--radius-sm)' }}>Post Anonymously</button>
         </div>
 
         <div className="forum-feed">

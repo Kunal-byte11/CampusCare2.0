@@ -50,17 +50,17 @@ export default function Chatbot() {
 
   return (
     <div className="page active" id="page-chatbot">
-      <div className="chat-container">
+      <div className="chat-layout chat-container">
         <div className="chat-header">
           <div className="chat-header-info">
             <div className="chat-avatar new-bot-avatar">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="10" fill="#2d1c3a" />
-                <path d="M15 11h-6v4h6v-4zM11 15h2v2h-2v-2z" fill="#ff7da9" />
-                <rect x="7" y="10" width="10" height="6" rx="1" fill="#ff7da9" />
-                <circle cx="9.5" cy="12.5" r="1" fill="#000" />
-                <circle cx="14.5" cy="12.5" r="1" fill="#000" />
-                <path d="M12 10v-2m-2 0h4" stroke="#ff7da9" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="10" fill="var(--brand-blue)" />
+                <path d="M15 11h-6v4h6v-4zM11 15h2v2h-2v-2z" fill="#ffffff" />
+                <rect x="7" y="10" width="10" height="6" rx="1" fill="#ffffff" />
+                <circle cx="9.5" cy="12.5" r="1" fill="var(--brand-blue)" />
+                <circle cx="14.5" cy="12.5" r="1" fill="var(--brand-blue)" />
+                <path d="M12 10v-2m-2 0h4" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
             <div>
@@ -80,11 +80,11 @@ export default function Chatbot() {
               <div className="msg-avatar">{m.type === 'bot' ? (
                 <div className="new-bot-avatar-small">
                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
-                    <circle cx="12" cy="12" r="10" fill="#2d1c3a" />
-                    <rect x="7" y="10" width="10" height="6" rx="1" fill="#ff7da9" />
-                    <circle cx="9.5" cy="12.5" r="1" fill="#000" />
-                    <circle cx="14.5" cy="12.5" r="1" fill="#000" />
-                    <path d="M12 10v-2m-2 0h4" stroke="#ff7da9" strokeWidth="1.5" strokeLinecap="round" />
+                    <circle cx="12" cy="12" r="10" fill="var(--brand-blue)" />
+                    <rect x="7" y="10" width="10" height="6" rx="1" fill="#ffffff" />
+                    <circle cx="9.5" cy="12.5" r="1" fill="var(--brand-blue)" />
+                    <circle cx="14.5" cy="12.5" r="1" fill="var(--brand-blue)" />
+                    <path d="M12 10v-2m-2 0h4" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                 </div>
               ) : '👤'}</div>
@@ -114,7 +114,7 @@ export default function Chatbot() {
             onKeyDown={handleKeyDown}
           ></textarea>
           <button className="chat-send new-send-btn" id="chat-send" onClick={hangleSend}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#050d1a" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
       </div>
