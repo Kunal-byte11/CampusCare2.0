@@ -1132,50 +1132,6 @@ export default function VideoCall() {
                       }}
                     />
                   </div>
-
-                  {/* 1-Laptop Demo Helper (Sleek Glass Box) */}
-                  <div style={{
-                    background: 'var(--teal-pale)',
-                    border: '1px solid rgba(50, 165, 178, 0.25)',
-                    borderRadius: '12px',
-                    padding: '12px 14px',
-                    marginBottom: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '12px'
-                  }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--teal)' }}>
-                        <Sparkles size={14} />
-                        <span>Testing Alone on 1 Laptop?</span>
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        Click below to open the counselor peer window and auto-connect!
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={openSecondTabTest}
-                      style={{
-                        background: 'var(--surface)',
-                        color: 'var(--teal)',
-                        border: '1px solid var(--teal)',
-                        padding: '6px 12px',
-                        borderRadius: '100px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        flexShrink: 0
-                      }}
-                    >
-                      <ExternalLink size={12} />
-                      <span>Launch Peer Tab</span>
-                    </button>
-                  </div>
                 </div>
 
                 {/* Primary Action Buttons */}

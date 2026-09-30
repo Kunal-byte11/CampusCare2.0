@@ -4,43 +4,49 @@
    ============================================================================== */
 
 :root {
-  --brand-blue: #2676a6;
-  --brand-blue-dark: #195e89;
-  --brand-blue-pale: #eaf4fa;
-  --sidebar-bg: #f0f5f8;
-  --page-bg: #f8fafc;
-  --surface: #ffffff;
-  --surface-hover: #e4ecf1;
-  --text-primary: #344653;
-  --text-secondary: #728592;
-  --text-muted: #8c9ea9;
-  --border: #e4ebef;
-  --border-light: #f1f5f8;
-  --border-bright: #cbd8e1;
-  --green: #62ad45;
-  --green-pale: #edf7e9;
-  --teal: #32a5b2;
-  --teal-pale: #eaf6f7;
-  --coral: #df685a;
-  --coral-pale: #fdf0ee;
-  --coral-hover: #cb5749;
-  --orange: #d8844e;
-  --orange-pale: #fbf2eb;
-  --orange-hover: #c4723e;
-  --error: #c74444;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --shadow-card: 0 2px 12px rgba(35, 65, 90, 0.05);
-  --shadow-subtle: 0 1px 3px rgba(35, 65, 90, 0.04);
-  --shadow-dropdown: 0 4px 18px rgba(35, 65, 90, 0.12);
+  /* Mental Wellness Platform Design System — Soft Blue (Palette 2) & Calm Nature (Palette 1) */
+  --brand-blue: #2563eb;          /* Soft Blue Accent */
+  --brand-blue-dark: #1d4ed8;     /* Deep Soft Blue */
+  --brand-blue-pale: #eff6ff;     /* Subtle Sky Tint */
+  --sidebar-bg: #eaf3fb;          /* Gentle Soft Blue Panel */
+  --page-bg: #f0f8ff;             /* Soft Blue Background (Alice Blue) */
+  --surface: #ffffff;             /* Crisp Clean Card Surface */
+  --surface-hover: #e0efff;       /* Interactive Blue Tint */
+  --text-primary: #1e3a8a;        /* Deep Navy Text (Palette 2 Text) */
+  --text-secondary: #475569;      /* Soothing Slate Secondary */
+  --text-muted: #64748b;          /* Calming Muted Slate */
+  --border: #dbeafe;              /* Soft Blue Border */
+  --border-light: #eff6ff;        /* Light Tint Border */
+  --border-bright: #bfdbfe;       /* Focus Border */
+  
+  /* Calm Nature (Palette 1) Wellness Tokens */
+  --green: #2e7d6b;               /* Calm Nature Accent (Deep Forest) */
+  --green-pale: #e8f5e9;          /* Calm Nature Background (Soothing Mint) */
+  --teal: #4caf8f;                /* Calm Nature Secondary (Healing Green) */
+  --teal-pale: #e8f5f1;           /* Healing Pale */
+  
+  /* Clinical Safety & Warm Alert Tokens */
+  --coral: #e05244;               /* Clinical Safety Flag */
+  --coral-pale: #fee2e2;          /* Critical Alert Pale */
+  --coral-hover: #c93b2d;
+  --orange: #f59e0b;              /* Warm & Positive (Palette 3 Accent) */
+  --orange-pale: #fff7ed;         /* Warm & Positive Background */
+  --orange-hover: #d97706;
+  --error: #dc2626;
+  
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow-card: 0 4px 16px rgba(30, 58, 138, 0.06);
+  --shadow-subtle: 0 2px 6px rgba(30, 58, 138, 0.04);
+  --shadow-dropdown: 0 8px 24px rgba(30, 58, 138, 0.12);
   --header-height: 68px;
   --sidebar-width: 220px;
   --content-max-width: 1500px;
   --card-bg: #ffffff;
-  --card-bg-subtle: #f0f5f8;
-  --chat-bubble-bot: #f0f5f8;
-  --chat-bubble-bot-border: #e4ebef;
-  --chat-bubble-bot-text: #344653;
+  --card-bg-subtle: #f0f8ff;
+  --chat-bubble-bot: #f0f8ff;
+  --chat-bubble-bot-border: #dbeafe;
+  --chat-bubble-bot-text: #1e3a8a;
   --chat-input-bg: #f8fafc;
 }
 
