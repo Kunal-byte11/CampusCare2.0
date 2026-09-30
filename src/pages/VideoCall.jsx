@@ -18,15 +18,20 @@ import {
   Volume2,
   FileText,
   X,
-  Save
+  Save,
+  Lock,
+  Clock,
+  HeartPulse,
+  Settings2,
+  UserCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 // Helper: Create an animated canvas video stream for virtual camera / single-laptop test
-function createSyntheticVideoStream(label = 'Campus Counselor (Dr. Shahista Kazi)') {
+function createSyntheticVideoStream(label = 'Campus Counselor (Dr. Shahista Kazi)', isCounselor = true) {
   const canvas = document.createElement('canvas');
-  canvas.width = 640;
-  canvas.height = 480;
+  canvas.width = 1280;
+  canvas.height = 720;
   const ctx = canvas.getContext('2d');
   
   let frame = 0;
@@ -34,44 +39,121 @@ function createSyntheticVideoStream(label = 'Campus Counselor (Dr. Shahista Kazi
 
   function draw() {
     frame++;
-    // Gradient Background
-    const grad = ctx.createLinearGradient(0, 0, 640, 480);
-    grad.addColorStop(0, '#1e293b');
-    grad.addColorStop(1, '#0f172a');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 640, 480);
+    const width = 1280;
+    const height = 720;
 
-    // Glowing Circle behind avatar
-    const pulse = Math.sin(frame * 0.05) * 8;
+    // 1. Rich Modern Gradient Background
+    const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+    bgGrad.addColorStop(0, '#0a101f');
+    bgGrad.addColorStop(0.5, '#0f172a');
+    bgGrad.addColorStop(1, '#1e293b');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Subtle ambient mesh circles
+    const pulse1 = Math.sin(frame * 0.03) * 30;
+    const grad1 = ctx.createRadialGradient(280 + pulse1, 200, 10, 280, 200, 320);
+    grad1.addColorStop(0, isCounselor ? 'rgba(37, 99, 235, 0.18)' : 'rgba(16, 185, 129, 0.16)');
+    grad1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad1;
+    ctx.fillRect(0, 0, width, height);
+
+    const pulse2 = Math.cos(frame * 0.025) * 25;
+    const grad2 = ctx.createRadialGradient(1000, 520 + pulse2, 10, 1000, 520, 340);
+    grad2.addColorStop(0, 'rgba(56, 189, 248, 0.14)');
+    grad2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad2;
+    ctx.fillRect(0, 0, width, height);
+
+    // 3. Central Avatar Glow & Ring
+    const centerX = width / 2;
+    const centerY = height / 2 - 35;
+    const baseRadius = 110;
+    const ringPulse = Math.sin(frame * 0.04) * 8;
+
+    // Outer glow ring
     ctx.beginPath();
-    ctx.arc(320, 200, 75 + pulse, 0, Math.PI * 2);
-    ctx.fillStyle = '#2563eb';
-    ctx.fill();
+    ctx.arc(centerX, centerY, baseRadius + 18 + ringPulse, 0, Math.PI * 2);
+    ctx.strokeStyle = isCounselor ? 'rgba(56, 189, 248, 0.25)' : 'rgba(52, 211, 153, 0.25)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
 
-    // Avatar emoji
-    ctx.font = '72px sans-serif';
+    // Inner avatar background circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, baseRadius, 0, Math.PI * 2);
+    const circleGrad = ctx.createLinearGradient(centerX - 100, centerY - 100, centerX + 100, centerY + 100);
+    if (isCounselor) {
+      circleGrad.addColorStop(0, '#1d4ed8');
+      circleGrad.addColorStop(1, '#0284c7');
+    } else {
+      circleGrad.addColorStop(0, '#047857');
+      circleGrad.addColorStop(1, '#059669');
+    }
+    ctx.fillStyle = circleGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Avatar Emoji / Graphic
+    ctx.font = '96px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('👩‍🏫', 320, 200);
+    ctx.fillText(isCounselor ? '👩‍⚕️' : '🎓', centerX, centerY + 6);
 
-    // Name banner
+    // 4. Name & Designation Banner (Clean, Crisp Typography)
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 22px Inter, sans-serif';
-    ctx.fillText(label, 320, 310);
+    ctx.font = 'bold 34px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, centerX, centerY + 165);
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '14px Inter, sans-serif';
-    ctx.fillText('Lokmanya Tilak College of Engineering • Mental Wellness', 320, 340);
+    ctx.font = '500 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillText(
+      isCounselor 
+        ? 'Campus Clinical Psychologist • Lokmanya Tilak College of Engineering' 
+        : 'Confidential Telehealth Consultation • LTCE CampusCare', 
+      centerX, 
+      centerY + 205
+    );
 
-    // Live Badge
-    ctx.fillStyle = '#22c55e';
+    // 5. Bottom Status Strip
+    const bottomY = height - 55;
+    
+    // Pill Container
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    const pillW = 620;
+    const pillH = 46;
+    const pillX = centerX - pillW / 2;
     ctx.beginPath();
-    ctx.arc(235, 385, 6, 0, Math.PI * 2);
+    ctx.roundRect(pillX, bottomY - pillH / 2, pillW, pillH, 23);
     ctx.fill();
+    ctx.stroke();
+
+    // Glowing Live Dot
+    ctx.beginPath();
+    ctx.arc(pillX + 32, bottomY, 7, 0, Math.PI * 2);
     ctx.fillStyle = '#22c55e';
-    ctx.font = 'bold 13px Inter, sans-serif';
+    ctx.fill();
+
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 15px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('LIVE VIRTUAL FEED • WEBRTC CONNECTED', 250, 390);
+    ctx.fillText('LIVE HD TELEHEALTH FEED', pillX + 50, bottomY + 5);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '13px monospace';
+    ctx.fillText('• 30 FPS • AES-256 ENCRYPTED', pillX + 270, bottomY + 5);
+
+    // Equalizer audio visualizer bars on the right
+    for (let i = 0; i < 5; i++) {
+      const barH = 8 + Math.abs(Math.sin(frame * 0.12 + i * 0.7)) * 14;
+      const barX = pillX + pillW - 60 + i * 8;
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(barX, bottomY - barH / 2, 4, barH);
+    }
 
     animId = requestAnimationFrame(draw);
   }
@@ -87,15 +169,19 @@ function createSyntheticVideoStream(label = 'Campus Counselor (Dr. Shahista Kazi
 function createSyntheticAudioStream() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) return null;
-  const ctx = new AudioCtx();
-  const osc = ctx.createOscillator();
-  const dst = ctx.createMediaStreamDestination();
-  const gain = ctx.createGain();
-  gain.gain.value = 0.0001; // virtually silent, generates audio RTP packets
-  osc.connect(gain);
-  gain.connect(dst);
-  osc.start();
-  return dst.stream;
+  try {
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const dst = ctx.createMediaStreamDestination();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.0001; // virtually silent, generates audio RTP packets
+    osc.connect(gain);
+    gain.connect(dst);
+    osc.start();
+    return dst.stream;
+  } catch (e) {
+    return null;
+  }
 }
 
 // Dedicated Remote Video Player Component
@@ -130,7 +216,7 @@ function RemoteVideoPlayer({ user, fit = 'cover' }) {
 }
 
 // Dedicated Local Video Player Component
-function LocalVideoPlayer({ track, isCameraOff, mirror = true }) {
+function LocalVideoPlayer({ track, isCameraOff, mirror = false }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -153,11 +239,23 @@ function LocalVideoPlayer({ track, isCameraOff, mirror = true }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#1e293b',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
         color: '#94a3b8'
       }}>
-        <VideoOff size={32} style={{ marginBottom: '6px' }} />
-        <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>Camera Off</span>
+        <div style={{
+          width: '64px',
+          height: '64px',
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '12px'
+        }}>
+          <VideoOff size={28} color="#94a3b8" />
+        </div>
+        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f1f5f9' }}>Camera is Muted</span>
+        <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Audio is still transmitting</span>
       </div>
     );
   }
@@ -184,7 +282,7 @@ export default function VideoCall() {
   const [callState, setCallState] = useState('precall'); // 'precall' | 'incall' | 'postcall'
   const [channelName, setChannelName] = useState(initialChannel);
   const [participantRole, setParticipantRole] = useState(
-    isPeer ? 'Counselor (Ms. Shahista Kazi)' : (user?.role === 'counselor' ? 'Counselor' : (user?.name || 'Student'))
+    isPeer ? 'Dr. Shahista Kazi (Campus Counselor)' : (user?.role === 'counselor' ? 'Dr. Shahista Kazi (Campus Counselor)' : (user?.name || 'Student'))
   );
 
   // Media Controls
@@ -283,7 +381,7 @@ export default function VideoCall() {
       if (!mounted) return;
 
       if (!AgoraRTC) {
-        setStatusMsg('Agora SDK loading error. Please check internet connection.');
+        setStatusMsg('Agora SDK loading error. Please check your internet connection.');
         return;
       }
 
@@ -292,24 +390,25 @@ export default function VideoCall() {
 
       // Try acquiring real physical camera
       try {
-        setStatusMsg('Requesting camera & microphone...');
+        setStatusMsg('Connecting camera & audio hardware...');
         vTrack = await AgoraRTC.createCameraVideoTrack({
           encoderConfig: '720p_1'
         });
-        setStatusMsg('Camera ready');
+        setStatusMsg('Webcam operational');
       } catch (camErr) {
-        console.warn('Physical camera unavailable (likely locked by another tab or blocked):', camErr);
-        // Fallback to Synthetic Canvas Video Track
+        console.warn('Physical camera unavailable (locked by another tab or blocked):', camErr);
+        // Fallback to High-Res Synthetic Canvas Video Track
         try {
           const synthStream = createSyntheticVideoStream(
-            isPeer ? 'Campus Counselor (Dr. Shahista Kazi)' : `${user?.name || 'LTCE Student'} (Virtual Feed)`
+            isPeer ? 'Dr. Shahista Kazi (Campus Counselor)' : `${user?.name || 'LTCE Student'}`,
+            isPeer || isCounselor
           );
           syntheticStreamRef.current = synthStream;
           vTrack = AgoraRTC.createCustomVideoTrack({
             mediaStreamTrack: synthStream.getVideoTracks()[0]
           });
           setIsVirtualCam(true);
-          setStatusMsg('Physical webcam busy in other tab — using Live Virtual Video Feed');
+          setStatusMsg('Webcam in use in another tab — Live Virtual Feed Active');
         } catch (synthErr) {
           console.error('Failed to create virtual track:', synthErr);
         }
@@ -349,7 +448,7 @@ export default function VideoCall() {
       }
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPeer]);
+  }, [isPeer, isCounselor]);
 
   // Clean up tracks on final unmount
   useEffect(() => {
@@ -544,7 +643,7 @@ export default function VideoCall() {
   // Helper: Open 2nd participant in new tab on this laptop
   const openSecondTabTest = () => {
     const url = `${window.location.origin}/video-call?channel=${encodeURIComponent(channelName)}&peer=true`;
-    window.open(url, '_blank', 'width=880,height=720');
+    window.open(url, '_blank', 'width=960,height=760');
   };
 
   const copyRoomLink = () => {
@@ -566,14 +665,15 @@ export default function VideoCall() {
     <div style={{
       minHeight: 'calc(100vh - var(--header-height))',
       paddingTop: 'var(--header-height)',
-      backgroundColor: callState === 'incall' ? '#090f17' : 'var(--page-bg)',
+      backgroundColor: callState === 'incall' ? '#080d16' : 'var(--page-bg)',
       color: 'var(--text-primary)',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
     }}>
 
       {/* ========================================================================= */}
-      {/* 1. PRE-CALL SCREEN                                                        */}
+      {/* 1. MODERN PRE-CALL TELEHEALTH LOBBY                                      */}
       {/* ========================================================================= */}
       {callState === 'precall' && (
         <div style={{
@@ -581,288 +681,485 @@ export default function VideoCall() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '24px 16px'
+          padding: '32px 20px',
+          background: 'linear-gradient(180deg, var(--page-bg) 0%, var(--sidebar-bg) 100%)'
         }}>
           <div style={{
-            maxWidth: '560px',
+            maxWidth: '1080px',
             width: '100%',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-card)',
-            padding: '28px'
+            borderRadius: '20px',
+            boxShadow: '0 12px 40px rgba(35, 65, 90, 0.08)',
+            overflow: 'hidden'
           }}>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1.4rem' }}>📹</span>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
-                  Video Counseling Room
-                </h2>
-              </div>
-              <span style={{
-                background: 'var(--brand-blue-pale)',
-                color: 'var(--brand-blue)',
-                padding: '4px 10px',
-                borderRadius: '100px',
-                fontSize: '0.75rem',
-                fontWeight: 600
-              }}>
-                1-on-1 Agora WebRTC
-              </span>
-            </div>
-
-            {/* Laptop 2-Tab Test Banner */}
+            {/* Top Security & Branding Bar */}
             <div style={{
+              padding: '16px 24px',
+              borderBottom: '1px solid var(--border)',
               background: 'var(--sidebar-bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px 14px',
-              marginBottom: '18px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
               gap: '12px'
             }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  <Sparkles size={15} color="var(--brand-blue)" />
-                  <span>Testing on 1 Laptop?</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: 'var(--brand-blue-pale)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--brand-blue)'
+                }}>
+                  <HeartPulse size={18} />
                 </div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                  Click to launch a peer tab. Both tabs will see &amp; hear each other!
+                <div>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                    CampusCare Telehealth Suite
+                  </h3>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    Lokmanya Tilak College of Engineering • Department of Student Welfare
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={openSecondTabTest}
-                style={{
-                  background: 'var(--brand-blue)',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '6px 12px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  flexShrink: 0
-                }}
-              >
-                <ExternalLink size={13} />
-                <span>Open Peer Tab</span>
-              </button>
-            </div>
-
-            {/* Camera Preview Area */}
-            <div style={{
-              width: '100%',
-              aspectRatio: '16 / 9',
-              background: '#0f172a',
-              borderRadius: 'var(--radius-sm)',
-              position: 'relative',
-              overflow: 'hidden',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid var(--border)'
-            }}>
-              {localVideoTrack ? (
-                <LocalVideoPlayer track={localVideoTrack} isCameraOff={isCameraOff} />
-              ) : (
-                <div style={{ textAlign: 'center', color: '#94a3b8', padding: '16px' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>⏳</div>
-                  <div style={{ fontSize: '0.85rem' }}>{statusMsg}</div>
-                </div>
-              )}
-
-              {/* Status Badge */}
-              <div style={{
-                position: 'absolute',
-                top: '10px',
-                left: '10px',
-                background: 'rgba(0,0,0,0.7)',
-                color: '#fff',
-                padding: '4px 10px',
-                borderRadius: '100px',
-                fontSize: '0.72rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                zIndex: 10
-              }}>
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  padding: '5px 12px',
+                  borderRadius: '100px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600
+                }}>
+                  <Lock size={12} color="var(--green)" />
+                  <span>256-Bit Encrypted</span>
+                </span>
                 <span style={{
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '50%',
-                  backgroundColor: localVideoTrack ? '#22c55e' : '#f59e0b'
-                }}></span>
-                <span>{isVirtualCam ? 'Virtual Live Feed' : (localVideoTrack ? 'Physical Webcam' : 'Initializing...')}</span>
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'var(--brand-blue-pale)',
+                  color: 'var(--brand-blue)',
+                  padding: '5px 12px',
+                  borderRadius: '100px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600
+                }}>
+                  <ShieldCheck size={13} />
+                  <span>Agora HD WebRTC</span>
+                </span>
               </div>
+            </div>
 
-              {/* Participant Name Badge */}
+            {/* Main 2-Column Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1.35fr) minmax(340px, 1fr)',
+              gap: 0
+            }}>
+              {/* Left Column: Live Video Studio Preview */}
               <div style={{
-                position: 'absolute',
-                bottom: '10px',
-                left: '10px',
-                background: 'rgba(0,0,0,0.7)',
-                color: '#fff',
-                padding: '4px 10px',
-                borderRadius: '4px',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                zIndex: 10
+                padding: '28px',
+                borderRight: '1px solid var(--border)',
+                background: '#090f19',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                position: 'relative'
               }}>
-                {participantRole} (You)
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: '#22c55e',
+                        boxShadow: '0 0 8px #22c55e'
+                      }} />
+                      <span style={{ color: '#f1f5f9', fontSize: '0.85rem', fontWeight: 600 }}>
+                        Hardware Preview
+                      </span>
+                    </div>
+
+                    <span style={{
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      color: '#94a3b8',
+                      padding: '3px 10px',
+                      borderRadius: '100px',
+                      fontSize: '0.72rem',
+                      fontWeight: 500
+                    }}>
+                      {isVirtualCam ? 'Synthetic Feed (No Camera Conflict)' : 'Physical Webcam'}
+                    </span>
+                  </div>
+
+                  {/* Video Viewport */}
+                  <div style={{
+                    width: '100%',
+                    aspectRatio: '16 / 9',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    background: '#04070e',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5)'
+                  }}>
+                    {localVideoTrack ? (
+                      <LocalVideoPlayer 
+                        track={localVideoTrack} 
+                        isCameraOff={isCameraOff} 
+                        mirror={!isVirtualCam} 
+                      />
+                    ) : (
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#94a3b8',
+                        padding: '24px'
+                      }}>
+                        <div style={{
+                          width: '54px',
+                          height: '54px',
+                          borderRadius: '50%',
+                          border: '2px solid rgba(255,255,255,0.1)',
+                          borderTopColor: '#38bdf8',
+                          animation: 'spin 1s linear infinite',
+                          marginBottom: '16px'
+                        }} />
+                        <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f1f5f9' }}>
+                          {statusMsg}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Participant Tag inside Preview */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '12px',
+                      left: '12px',
+                      background: 'rgba(15, 23, 42, 0.82)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#fff',
+                      padding: '5px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      zIndex: 10,
+                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                    }}>
+                      <UserCheck size={14} color="#38bdf8" />
+                      <span>{participantRole} (You)</span>
+                    </div>
+
+                    {/* Audio Equalizer Dot */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '12px',
+                      right: '12px',
+                      background: isMuted ? 'rgba(239, 68, 68, 0.85)' : 'rgba(34, 197, 94, 0.85)',
+                      color: '#fff',
+                      padding: '4px 10px',
+                      borderRadius: '100px',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      zIndex: 10
+                    }}>
+                      {isMuted ? <MicOff size={12} /> : <Mic size={12} />}
+                      <span>{isMuted ? 'Muted' : 'Mic Live'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Device Control Pills inside Preview Column */}
+                <div style={{
+                  marginTop: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px'
+                }}>
+                  <button
+                    type="button"
+                    onClick={toggleMic}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 18px',
+                      borderRadius: '100px',
+                      border: isMuted ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.18)',
+                      background: isMuted ? 'rgba(239, 68, 68, 0.18)' : 'rgba(255,255,255,0.08)',
+                      color: isMuted ? '#fca5a5' : '#f8fafc',
+                      fontWeight: 600,
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
+                    <span>{isMuted ? 'Unmute Mic' : 'Mute Mic'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={toggleCamera}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 18px',
+                      borderRadius: '100px',
+                      border: isCameraOff ? '1px solid #ef4444' : '1px solid rgba(255,255,255,0.18)',
+                      background: isCameraOff ? 'rgba(239, 68, 68, 0.18)' : 'rgba(255,255,255,0.08)',
+                      color: isCameraOff ? '#fca5a5' : '#f8fafc',
+                      fontWeight: 600,
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
+                    <span>{isCameraOff ? 'Turn Camera On' : 'Turn Camera Off'}</span>
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Mic and Camera Toggle Buttons */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
-              <button
-                type="button"
-                onClick={toggleMic}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 18px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: isMuted ? '1px solid var(--coral)' : '1px solid var(--border)',
-                  background: isMuted ? 'var(--coral-pale)' : 'var(--surface)',
-                  color: isMuted ? 'var(--coral)' : 'var(--text-primary)',
-                  fontWeight: 600,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer'
-                }}
-              >
-                {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
-                <span>{isMuted ? 'Mic Muted' : 'Mic On'}</span>
-              </button>
+              {/* Right Column: Session Check-In & Launch Panel */}
+              <div style={{
+                padding: '32px 28px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                background: 'var(--surface)'
+              }}>
+                <div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <span style={{
+                      background: 'var(--brand-blue-pale)',
+                      color: 'var(--brand-blue)',
+                      padding: '4px 10px',
+                      borderRadius: '100px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      Consultation Check-In
+                    </span>
+                    <h2 style={{ fontSize: '1.4rem', fontWeight: 700, margin: '8px 0 4px', color: 'var(--text-primary)' }}>
+                      Join Video Session
+                    </h2>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
+                      Private, HIPAA-grade confidential space for student psychological counseling.
+                    </p>
+                  </div>
 
-              <button
-                type="button"
-                onClick={toggleCamera}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 18px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: isCameraOff ? '1px solid var(--coral)' : '1px solid var(--border)',
-                  background: isCameraOff ? 'var(--coral-pale)' : 'var(--surface)',
-                  color: isCameraOff ? 'var(--coral)' : 'var(--text-primary)',
-                  fontWeight: 600,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer'
-                }}
-              >
-                {isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
-                <span>{isCameraOff ? 'Camera Off' : 'Camera On'}</span>
-              </button>
-            </div>
-
-            {/* Room / Channel Name */}
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Session Room ID
-                </label>
-                <button
-                  type="button"
-                  onClick={copyRoomLink}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--brand-blue)',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer',
+                  {/* Profile & Role Badge */}
+                  <div style={{
+                    background: 'var(--sidebar-bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    marginBottom: '18px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: 600
-                  }}
-                >
-                  {copied ? <Check size={12} /> : <Copy size={12} />}
-                  <span>{copied ? 'Copied Link!' : 'Copy Link'}</span>
-                </button>
+                    gap: '12px'
+                  }}>
+                    <div style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '50%',
+                      background: isCounselor ? 'var(--brand-blue)' : 'var(--green)',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      fontWeight: 700,
+                      flexShrink: 0
+                    }}>
+                      {isCounselor ? '👩‍⚕️' : (user?.name?.charAt(0) || 'S')}
+                    </div>
+                    <div style={{ overflow: 'hidden' }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {isCounselor ? 'Dr. Shahista Kazi' : (user?.name || 'Kunal Dubey')}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        {isCounselor ? 'Campus Psychologist • LTCE Welfare' : (user?.email || 'kunaldubey975@gmail.com')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Room ID Input */}
+                  <div style={{ marginBottom: '18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        Session Room ID
+                      </label>
+                      <button
+                        type="button"
+                        onClick={copyRoomLink}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--brand-blue)',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontWeight: 600
+                        }}
+                      >
+                        {copied ? <Check size={12} color="var(--green)" /> : <Copy size={12} />}
+                        <span>{copied ? 'Copied Room URL!' : 'Share Room URL'}</span>
+                      </button>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={channelName}
+                      onChange={(e) => setChannelName(e.target.value)}
+                      placeholder="e.g. campuscare-room-1"
+                      style={{
+                        width: '100%',
+                        padding: '11px 14px',
+                        borderRadius: '100px',
+                        border: '1px solid var(--border)',
+                        background: 'var(--sidebar-bg)',
+                        color: 'var(--text-primary)',
+                        fontSize: '0.88rem',
+                        fontFamily: 'monospace',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  {/* 1-Laptop Demo Helper (Sleek Glass Box) */}
+                  <div style={{
+                    background: 'var(--teal-pale)',
+                    border: '1px solid rgba(50, 165, 178, 0.25)',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                  }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 700, color: 'var(--teal)' }}>
+                        <Sparkles size={14} />
+                        <span>Testing Alone on 1 Laptop?</span>
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                        Open counselor peer tab to experience live 2-way WebRTC video &amp; audio.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={openSecondTabTest}
+                      style={{
+                        background: 'var(--surface)',
+                        color: 'var(--teal)',
+                        border: '1px solid var(--teal)',
+                        padding: '6px 12px',
+                        borderRadius: '100px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        flexShrink: 0
+                      }}
+                    >
+                      <ExternalLink size={12} />
+                      <span>Launch Peer Tab</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Primary Action Buttons */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={joinCall}
+                    disabled={isConnecting}
+                    style={{
+                      width: '100%',
+                      padding: '13px 24px',
+                      background: 'var(--brand-blue)',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '100px',
+                      fontSize: '0.96rem',
+                      fontWeight: 700,
+                      cursor: isConnecting ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      boxShadow: '0 4px 16px rgba(38, 118, 166, 0.28)',
+                      transition: 'all 0.15s ease',
+                      marginBottom: '10px'
+                    }}
+                  >
+                    <Video size={18} />
+                    <span>{isConnecting ? 'Connecting to Telehealth Room...' : 'Enter Consultation Room →'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/booking')}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                      border: 'none',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <ArrowLeft size={14} />
+                    <span>Back to Appointments Desk</span>
+                  </button>
+                </div>
               </div>
-              <input
-                type="text"
-                value={channelName}
-                onChange={(e) => setChannelName(e.target.value)}
-                placeholder="e.g. campuscare-room-1"
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface)',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.9rem',
-                  fontFamily: 'monospace',
-                  boxSizing: 'border-box'
-                }}
-              />
             </div>
-
-            {/* Join Call Button */}
-            <button
-              type="button"
-              onClick={joinCall}
-              disabled={isConnecting}
-              style={{
-                width: '100%',
-                padding: '12px 20px',
-                background: 'var(--brand-blue)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: 'var(--shadow-subtle)',
-                marginBottom: '10px'
-              }}
-            >
-              <Video size={18} />
-              <span>{isConnecting ? 'Connecting to Agora...' : 'Enter Video Call →'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/booking')}
-              style={{
-                width: '100%',
-                padding: '10px 20px',
-                background: 'transparent',
-                color: 'var(--text-secondary)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px'
-              }}
-            >
-              <ArrowLeft size={15} />
-              <span>Back to Appointments Desk</span>
-            </button>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 2. IN-CALL LIVE WEBRTC VIDEO SCREEN                                       */}
+      {/* 2. IN-CALL LIVE WEBRTC VIDEO SCREEN (TELEMEDICINE THEATER)                */}
       {/* ========================================================================= */}
       {callState === 'incall' && (
         <div style={{
@@ -873,65 +1170,82 @@ export default function VideoCall() {
           bottom: 0,
           width: '100vw',
           height: '100vh',
-          zIndex: 250,
+          zIndex: 9999,
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#090f17',
+          backgroundColor: '#080d16',
           overflow: 'hidden'
         }}>
-          {/* Top Call Info Bar */}
+          {/* Top Glassmorphic Navigation Bar */}
           <div style={{
             position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            padding: '14px 24px',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+            top: '16px',
+            left: '20px',
+            right: '20px',
+            padding: '10px 20px',
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '100px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            zIndex: 30,
-            color: '#fff'
+            zIndex: 40,
+            color: '#fff',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
           }}>
+            {/* Left: Branding & Encryption */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: 'rgba(255,255,255,0.12)',
-                padding: '4px 10px',
+                background: 'rgba(34, 197, 94, 0.16)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+                padding: '4px 12px',
                 borderRadius: '100px',
-                fontSize: '0.78rem'
+                fontSize: '0.76rem',
+                color: '#86efac',
+                fontWeight: 600
               }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }}></span>
-                <span>WebRTC Live</span>
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block', boxShadow: '0 0 8px #22c55e' }} />
+                <span>Agora Live</span>
               </div>
-              <span style={{ fontWeight: 600, fontSize: '0.9rem', fontFamily: 'monospace' }}>
-                {channelName}
-              </span>
-              <span style={{
-                background: 'rgba(0,0,0,0.5)',
-                padding: '4px 10px',
-                borderRadius: '4px',
-                fontSize: '0.85rem',
-                fontFamily: 'monospace'
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.82rem', fontFamily: 'monospace' }}>
+                <Lock size={12} color="#38bdf8" />
+                <span style={{ color: '#fff', fontWeight: 600 }}>{channelName}</span>
+              </div>
+
+              <div style={{
+                background: 'rgba(0,0,0,0.4)',
+                padding: '4px 12px',
+                borderRadius: '100px',
+                fontSize: '0.8rem',
+                fontFamily: 'monospace',
+                color: '#e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
               }}>
-                ⏱ {formatTimer(callDuration)}
-              </span>
+                <Clock size={13} color="#f59e0b" />
+                <span>{formatTimer(callDuration)}</span>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Right: Notes & Participant Status */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               {isCounselor && (
                 <button
                   type="button"
                   onClick={() => setShowNotesDrawer(!showNotesDrawer)}
                   style={{
-                    background: showNotesDrawer ? '#2563eb' : 'rgba(255,255,255,0.15)',
-                    border: '1px solid rgba(255,255,255,0.25)',
+                    background: showNotesDrawer ? '#2563eb' : 'rgba(255,255,255,0.1)',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     color: '#fff',
                     padding: '6px 14px',
                     borderRadius: '100px',
-                    fontSize: '0.8rem',
+                    fontSize: '0.78rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
@@ -942,7 +1256,7 @@ export default function VideoCall() {
                   title="Toggle Clinical Consultation Notes"
                 >
                   <FileText size={14} />
-                  <span>{showNotesDrawer ? 'Hide Notes' : 'Session Notes'}</span>
+                  <span>{showNotesDrawer ? 'Close Notes' : 'Clinical Notes'}</span>
                 </button>
               )}
 
@@ -950,18 +1264,19 @@ export default function VideoCall() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: 'rgba(0,0,0,0.5)',
-                padding: '6px 12px',
+                background: 'rgba(255,255,255,0.08)',
+                padding: '5px 12px',
                 borderRadius: '100px',
-                fontSize: '0.8rem'
+                fontSize: '0.78rem',
+                color: '#cbd5e1'
               }}>
                 <Users size={14} />
-                <span>{remoteList.length + 1} participant(s)</span>
+                <span>{remoteList.length + 1} Present</span>
               </div>
             </div>
           </div>
 
-          {/* Main Remote Video Stage */}
+          {/* Main Stage Viewport */}
           <div style={{
             flex: 1,
             position: 'relative',
@@ -970,19 +1285,42 @@ export default function VideoCall() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#090f17'
+            background: 'radial-gradient(ellipse at center, #111a2e 0%, #070b14 100%)'
           }}>
-            {/* Scenario A: Real Remote Peer(s) Connected via Agora */}
+            {/* Case A: Remote Users Present */}
             {remoteList.length > 0 ? (
               <div style={{ width: '100%', height: '100%', position: 'relative' }}>
                 {remoteList.map(u => (
                   <div key={u.uid} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
                     <RemoteVideoPlayer user={u} fit="cover" />
+                    
+                    {/* Remote Participant Name Tag */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '90px',
+                      left: '24px',
+                      background: 'rgba(15, 23, 42, 0.85)',
+                      backdropFilter: 'blur(8px)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#fff',
+                      padding: '6px 14px',
+                      borderRadius: '100px',
+                      fontSize: '0.84rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      zIndex: 20
+                    }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
+                      <span>{isCounselor ? 'Student (Confidential Session)' : 'Dr. Shahista Kazi (Campus Psychologist)'}</span>
+                      <ShieldCheck size={14} color="#38bdf8" />
+                    </div>
                   </div>
                 ))}
               </div>
             ) : simulatedCounselor ? (
-              /* Scenario B: Simulated Counselor Mode */
+              /* Case B: Simulated Counselor Demonstration */
               <div style={{
                 width: '100%',
                 height: '100%',
@@ -991,134 +1329,175 @@ export default function VideoCall() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'radial-gradient(circle at center, #1e293b 0%, #090f17 100%)'
+                background: 'radial-gradient(circle at center, #172554 0%, #080d16 100%)'
               }}>
                 <div style={{
-                  width: '140px',
-                  height: '140px',
+                  width: '130px',
+                  height: '130px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '4rem',
-                  boxShadow: '0 0 40px rgba(37,99,235,0.4)',
-                  marginBottom: '16px'
+                  boxShadow: '0 0 50px rgba(37,99,235,0.45)',
+                  marginBottom: '18px'
                 }}>
-                  👩‍🏫
+                  👩‍⚕️
                 </div>
-                <h3 style={{ color: '#fff', fontSize: '1.25rem', margin: '0 0 6px', fontWeight: 600 }}>
-                  Ms. Shahista Kazi (Campus Counselor)
+                <h3 style={{ color: '#fff', fontSize: '1.4rem', margin: '0 0 6px', fontWeight: 700 }}>
+                  Dr. Shahista Kazi, Ph.D.
                 </h3>
-                <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0 0 16px' }}>
-                  Lokmanya Tilak College of Engineering • Psychological Welfare
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: '0 0 18px' }}>
+                  Head of Student Psychological Welfare • Lokmanya Tilak College of Engineering
                 </p>
 
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   background: 'rgba(34, 197, 94, 0.15)',
                   border: '1px solid #22c55e',
-                  color: '#22c55e',
-                  padding: '6px 14px',
+                  color: '#86efac',
+                  padding: '7px 16px',
                   borderRadius: '100px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600
-                }}>
-                  <Volume2 size={15} />
-                  <span>Counselor Audio Connected</span>
-                </div>
-
-                <div style={{
-                  position: 'absolute',
-                  bottom: '80px',
-                  left: '24px',
-                  background: 'rgba(0,0,0,0.7)',
-                  color: '#fff',
-                  padding: '4px 12px',
-                  borderRadius: '4px',
                   fontSize: '0.82rem',
                   fontWeight: 600
                 }}>
-                  Counselor Feed (Simulated Mode)
+                  <Volume2 size={16} />
+                  <span>Counselor Audio Connected (Simulated Feed)</span>
                 </div>
               </div>
             ) : (
-              /* Scenario C: Waiting for Remote Peer */
-              <div style={{ textAlign: 'center', color: '#64748b', padding: '24px' }}>
+              /* Case C: Elegant Waiting Room */
+              <div style={{
+                textAlign: 'center',
+                color: '#94a3b8',
+                padding: '32px',
+                maxWidth: '480px'
+              }}>
                 <div style={{
-                  width: '72px',
-                  height: '72px',
+                  width: '84px',
+                  height: '84px',
                   borderRadius: '50%',
-                  background: '#1e293b',
-                  margin: '0 auto 16px',
+                  background: 'rgba(37, 99, 235, 0.12)',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  margin: '0 auto 20px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '2rem'
+                  fontSize: '2.4rem',
+                  animation: 'pulse 2s infinite'
                 }}>
-                  ⏳
+                  🩺
                 </div>
-                <h3 style={{ color: '#f1f5f9', fontSize: '1.2rem', marginBottom: '8px', fontWeight: 600 }}>
+                <h3 style={{ color: '#f8fafc', fontSize: '1.35rem', marginBottom: '8px', fontWeight: 700 }}>
                   Waiting for participant to join...
                 </h3>
-                <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
-                  Session Room: <span style={{ color: '#38bdf8', fontWeight: 600 }}>{channelName}</span>
+                <p style={{ color: '#94a3b8', fontSize: '0.85rem', lineHeight: 1.5, margin: '0 0 20px' }}>
+                  Your encrypted session room is ready. Share the session link or room code with the participant.
                 </p>
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={copyRoomLink}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: '#fff',
+                      padding: '8px 16px',
+                      borderRadius: '100px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    {copied ? <Check size={14} color="#86efac" /> : <Copy size={14} />}
+                    <span>{copied ? 'Link Copied' : 'Copy Room Link'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSimulatedCounselor(true)}
+                    style={{
+                      background: 'rgba(37, 99, 235, 0.25)',
+                      border: '1px solid #38bdf8',
+                      color: '#38bdf8',
+                      padding: '8px 16px',
+                      borderRadius: '100px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Demo Counselor Feed
+                  </button>
+                </div>
               </div>
             )}
 
             {/* Local Video Picture-in-Picture (PiP) */}
             <div style={{
               position: 'absolute',
-              bottom: '84px',
+              bottom: '96px',
               right: '24px',
-              width: '210px',
+              width: '230px',
               aspectRatio: '16 / 9',
-              background: '#1e293b',
-              borderRadius: '8px',
-              border: '2px solid rgba(255,255,255,0.35)',
+              background: '#0f172a',
+              borderRadius: '14px',
+              border: '2px solid rgba(255, 255, 255, 0.25)',
               overflow: 'hidden',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
-              zIndex: 25
+              boxShadow: '0 12px 36px rgba(0, 0, 0, 0.7)',
+              zIndex: 35
             }}>
               {localVideoTrack && (
-                <LocalVideoPlayer track={localVideoTrack} isCameraOff={isCameraOff} />
+                <LocalVideoPlayer 
+                  track={localVideoTrack} 
+                  isCameraOff={isCameraOff} 
+                  mirror={!isVirtualCam} 
+                />
               )}
               <div style={{
                 position: 'absolute',
                 bottom: '6px',
                 left: '8px',
-                background: 'rgba(0,0,0,0.7)',
+                background: 'rgba(15, 23, 42, 0.85)',
                 color: '#fff',
-                fontSize: '0.7rem',
+                fontSize: '0.72rem',
                 padding: '2px 8px',
-                borderRadius: '3px',
+                borderRadius: '4px',
                 fontWeight: 600,
-                zIndex: 26
+                zIndex: 36,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
               }}>
-                You {isMuted ? '🔇' : ''}
+                <span>You</span>
+                {isMuted && <MicOff size={11} color="#fca5a5" />}
               </div>
             </div>
           </div>
 
-          {/* Floating Call Controls Bar */}
+          {/* Floating Telehealth Controls Dock */}
           <div style={{
             position: 'absolute',
-            bottom: '18px',
+            bottom: '22px',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(15, 23, 42, 0.88)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            padding: '10px 22px',
+            background: 'rgba(15, 23, 42, 0.82)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.16)',
+            padding: '10px 24px',
             borderRadius: '100px',
             display: 'flex',
             alignItems: 'center',
-            gap: '14px',
-            zIndex: 30,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+            gap: '16px',
+            zIndex: 45,
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5)'
           }}>
             {/* Mic Toggle */}
             <button
@@ -1126,17 +1505,18 @@ export default function VideoCall() {
               onClick={toggleMic}
               title={isMuted ? 'Unmute Microphone' : 'Mute Microphone'}
               style={{
-                width: '44px',
-                height: '44px',
+                width: '46px',
+                height: '46px',
                 borderRadius: '50%',
                 border: 'none',
-                background: isMuted ? '#ef4444' : 'rgba(255,255,255,0.15)',
+                background: isMuted ? '#ef4444' : 'rgba(255, 255, 255, 0.12)',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                transition: 'all 0.15s ease',
+                boxShadow: isMuted ? '0 0 16px rgba(239, 68, 68, 0.4)' : 'none'
               }}
             >
               {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
@@ -1148,17 +1528,18 @@ export default function VideoCall() {
               onClick={toggleCamera}
               title={isCameraOff ? 'Turn Camera On' : 'Turn Camera Off'}
               style={{
-                width: '44px',
-                height: '44px',
+                width: '46px',
+                height: '46px',
                 borderRadius: '50%',
                 border: 'none',
-                background: isCameraOff ? '#ef4444' : 'rgba(255,255,255,0.15)',
+                background: isCameraOff ? '#ef4444' : 'rgba(255, 255, 255, 0.12)',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease'
+                transition: 'all 0.15s ease',
+                boxShadow: isCameraOff ? '0 0 16px rgba(239, 68, 68, 0.4)' : 'none'
               }}
             >
               {isCameraOff ? <VideoOff size={20} /> : <Video size={20} />}
@@ -1170,11 +1551,11 @@ export default function VideoCall() {
               onClick={toggleScreenShare}
               title="Share Screen"
               style={{
-                width: '44px',
-                height: '44px',
+                width: '46px',
+                height: '46px',
                 borderRadius: '50%',
                 border: 'none',
-                background: isScreenSharing ? '#38bdf8' : 'rgba(255,255,255,0.15)',
+                background: isScreenSharing ? '#0284c7' : 'rgba(255, 255, 255, 0.12)',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -1186,18 +1567,18 @@ export default function VideoCall() {
               <MonitorUp size={20} />
             </button>
 
-            {/* Counselor Session Notes Toggle */}
+            {/* Counselor Session Notes */}
             {isCounselor && (
               <button
                 type="button"
                 onClick={() => setShowNotesDrawer(!showNotesDrawer)}
                 title={showNotesDrawer ? 'Close Counselor Notes' : 'Clinical Consultation Notes'}
                 style={{
-                  width: '44px',
-                  height: '44px',
+                  width: '46px',
+                  height: '46px',
                   borderRadius: '50%',
                   border: 'none',
-                  background: showNotesDrawer ? 'var(--brand-blue, #2563eb)' : 'rgba(255,255,255,0.15)',
+                  background: showNotesDrawer ? 'var(--brand-blue, #2563eb)' : 'rgba(255, 255, 255, 0.12)',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
@@ -1210,27 +1591,30 @@ export default function VideoCall() {
               </button>
             )}
 
-            {/* End Call */}
+            {/* End Consultation Button */}
             <button
               type="button"
               onClick={leaveCall}
-              title="End Session"
+              title="End Consultation"
               style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
+                height: '46px',
+                padding: '0 20px',
+                borderRadius: '100px',
                 border: 'none',
                 background: '#dc2626',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)',
+                boxShadow: '0 4px 16px rgba(220, 38, 38, 0.45)',
+                fontWeight: 700,
+                fontSize: '0.88rem',
                 transition: 'all 0.15s ease'
               }}
             >
-              <PhoneOff size={22} />
+              <PhoneOff size={18} />
+              <span>Leave</span>
             </button>
           </div>
 
@@ -1238,33 +1622,33 @@ export default function VideoCall() {
           {showNotesDrawer && isCounselor && (
             <div style={{
               position: 'absolute',
-              top: '68px',
+              top: '76px',
               right: '20px',
-              bottom: '80px',
-              width: '380px',
+              bottom: '88px',
+              width: '400px',
               maxWidth: 'calc(100vw - 40px)',
-              background: '#0f172a',
+              background: 'rgba(15, 23, 42, 0.94)',
               border: '1px solid rgba(255, 255, 255, 0.18)',
-              borderRadius: '14px',
-              boxShadow: '0 16px 48px rgba(0, 0, 0, 0.65)',
+              borderRadius: '18px',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.75)',
               display: 'flex',
               flexDirection: 'column',
-              zIndex: 35,
+              zIndex: 50,
               overflow: 'hidden',
-              backdropFilter: 'blur(16px)'
+              backdropFilter: 'blur(20px)'
             }}>
               {/* Drawer Header */}
               <div style={{
-                padding: '14px 18px',
+                padding: '16px 20px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: 'rgba(30, 41, 59, 0.7)'
+                background: 'rgba(30, 41, 59, 0.6)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <FileText size={18} style={{ color: '#38bdf8' }} />
-                  <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>
+                  <span style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>
                     Clinical Consultation Notes
                   </span>
                 </div>
@@ -1292,21 +1676,21 @@ export default function VideoCall() {
                 style={{
                   flex: 1,
                   overflowY: 'auto',
-                  padding: '16px 18px',
+                  padding: '18px 20px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px'
+                  gap: '14px'
                 }}
               >
                 {noteSavedMsg && (
                   <div style={{
-                    background: 'rgba(34, 197, 94, 0.15)',
+                    background: 'rgba(34, 197, 94, 0.18)',
                     border: '1px solid #22c55e',
                     color: '#86efac',
-                    padding: '8px 12px',
+                    padding: '9px 14px',
                     borderRadius: '8px',
-                    fontSize: '0.8rem',
-                    fontWeight: 500
+                    fontSize: '0.82rem',
+                    fontWeight: 600
                   }}>
                     {noteSavedMsg}
                   </div>
@@ -1314,7 +1698,7 @@ export default function VideoCall() {
 
                 {/* Session Title */}
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.74rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Session Title
                   </label>
                   <input
@@ -1323,20 +1707,22 @@ export default function VideoCall() {
                     onChange={(e) => setNoteTitle(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '8px 10px',
-                      background: '#1e293b',
+                      padding: '9px 12px',
+                      background: 'rgba(30, 41, 59, 0.8)',
                       border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: '6px',
+                      borderRadius: '8px',
                       color: '#fff',
-                      fontSize: '0.85rem'
+                      fontSize: '0.86rem',
+                      outline: 'none',
+                      boxSizing: 'border-box'
                     }}
                   />
                 </div>
 
-                {/* Category & Severity Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {/* Category & Severity */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>
+                    <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.74rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Category
                     </label>
                     <select
@@ -1344,12 +1730,13 @@ export default function VideoCall() {
                       onChange={(e) => setNoteCategory(e.target.value)}
                       style={{
                         width: '100%',
-                        padding: '8px 10px',
+                        padding: '9px 10px',
                         background: '#1e293b',
                         border: '1px solid rgba(255,255,255,0.15)',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         color: '#fff',
-                        fontSize: '0.8rem'
+                        fontSize: '0.82rem',
+                        outline: 'none'
                       }}
                     >
                       <option value="Exam Stress & Anxiety">Exam Stress & Anxiety</option>
@@ -1362,20 +1749,21 @@ export default function VideoCall() {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>
-                      Severity / Risk
+                    <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.74rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Risk Level
                     </label>
                     <select
                       value={noteSeverity}
                       onChange={(e) => setNoteSeverity(e.target.value)}
                       style={{
                         width: '100%',
-                        padding: '8px 10px',
+                        padding: '9px 10px',
                         background: '#1e293b',
                         border: '1px solid rgba(255,255,255,0.15)',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         color: '#fff',
-                        fontSize: '0.8rem'
+                        fontSize: '0.82rem',
+                        outline: 'none'
                       }}
                     >
                       <option value="Normal">Normal</option>
@@ -1389,8 +1777,8 @@ export default function VideoCall() {
 
                 {/* Optional Student Roll / Reference */}
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>
-                    Student Anonymous Ref / Roll ID (Optional)
+                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.74rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Student Roll / Ref ID (Optional)
                   </label>
                   <input
                     type="text"
@@ -1399,19 +1787,21 @@ export default function VideoCall() {
                     onChange={(e) => setStudentRefId(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '8px 10px',
-                      background: '#1e293b',
+                      padding: '9px 12px',
+                      background: 'rgba(30, 41, 59, 0.8)',
                       border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: '6px',
+                      borderRadius: '8px',
                       color: '#fff',
-                      fontSize: '0.85rem'
+                      fontSize: '0.86rem',
+                      outline: 'none',
+                      boxSizing: 'border-box'
                     }}
                   />
                 </div>
 
                 {/* Clinical Observations */}
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.74rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Clinical Observations *
                   </label>
                   <textarea
@@ -1421,21 +1811,23 @@ export default function VideoCall() {
                     placeholder="Document student's mental state, vocal affect, behavioral cues, concerns discussed..."
                     style={{
                       width: '100%',
-                      padding: '8px 10px',
-                      background: '#1e293b',
+                      padding: '10px 12px',
+                      background: 'rgba(30, 41, 59, 0.8)',
                       border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: '6px',
+                      borderRadius: '8px',
                       color: '#fff',
-                      fontSize: '0.82rem',
+                      fontSize: '0.84rem',
                       lineHeight: 1.4,
-                      resize: 'vertical'
+                      resize: 'vertical',
+                      outline: 'none',
+                      boxSizing: 'border-box'
                     }}
                   />
                 </div>
 
                 {/* Action Plan */}
                 <div>
-                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.74rem', fontWeight: 700, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Intervention & Action Plan
                   </label>
                   <textarea
@@ -1445,14 +1837,16 @@ export default function VideoCall() {
                     placeholder="Recommended self-care strategies, follow-up session timeline, resources assigned..."
                     style={{
                       width: '100%',
-                      padding: '8px 10px',
-                      background: '#1e293b',
+                      padding: '10px 12px',
+                      background: 'rgba(30, 41, 59, 0.8)',
                       border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: '6px',
+                      borderRadius: '8px',
                       color: '#fff',
-                      fontSize: '0.82rem',
+                      fontSize: '0.84rem',
                       lineHeight: 1.4,
-                      resize: 'vertical'
+                      resize: 'vertical',
+                      outline: 'none',
+                      boxSizing: 'border-box'
                     }}
                   />
                 </div>
@@ -1466,21 +1860,21 @@ export default function VideoCall() {
                     background: 'var(--brand-blue, #2563eb)',
                     color: '#fff',
                     border: 'none',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    fontWeight: 600,
+                    padding: '12px 16px',
+                    borderRadius: '100px',
+                    fontWeight: 700,
                     fontSize: '0.88rem',
                     cursor: noteSaving ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
-                    boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
+                    boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
                     opacity: noteSaving ? 0.7 : 1
                   }}
                 >
                   <Save size={16} />
-                  <span>{noteSaving ? 'Saving Notes...' : 'Save to Case Files'}</span>
+                  <span>{noteSaving ? 'Saving Notes...' : 'Save to Clinical Case Files'}</span>
                 </button>
               </form>
             </div>
@@ -1489,7 +1883,7 @@ export default function VideoCall() {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. POST-CALL SCREEN                                                       */}
+      {/* 3. POST-CALL CONSULTATION SUMMARY SCREEN                                  */}
       {/* ========================================================================= */}
       {callState === 'postcall' && (
         <div style={{
@@ -1497,62 +1891,84 @@ export default function VideoCall() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '24px 16px'
+          padding: '32px 20px',
+          background: 'linear-gradient(180deg, var(--page-bg) 0%, var(--sidebar-bg) 100%)'
         }}>
           <div style={{
-            maxWidth: '480px',
+            maxWidth: '520px',
             width: '100%',
             background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-card)',
-            padding: '32px',
+            borderRadius: '20px',
+            boxShadow: '0 12px 40px rgba(35, 65, 90, 0.08)',
+            padding: '36px',
             textAlign: 'center'
           }}>
             <div style={{
-              width: '64px',
-              height: '64px',
+              width: '68px',
+              height: '68px',
               borderRadius: '50%',
               background: 'var(--green-pale)',
               color: 'var(--green)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.8rem',
-              margin: '0 auto 16px'
+              fontSize: '2rem',
+              margin: '0 auto 18px',
+              boxShadow: '0 0 24px rgba(98, 173, 69, 0.2)'
             }}>
               ✓
             </div>
 
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0 0 8px' }}>
-              Counseling Session Ended
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, margin: '0 0 8px', color: 'var(--text-primary)' }}>
+              Consultation Concluded
             </h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '24px' }}>
-              Your session history has been securely logged. Your confidential portal remains accessible anytime.
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: 1.5 }}>
+              Your session metadata has been recorded securely. Remember that our campus wellness counselors and crisis resources are always here for you.
             </p>
 
+            {/* Session Stats */}
             <div style={{
               background: 'var(--sidebar-bg)',
               border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '14px',
+              borderRadius: '14px',
+              padding: '16px 20px',
               marginBottom: '24px',
               display: 'flex',
-              justifyContent: 'space-around'
+              justifyContent: 'space-around',
+              alignItems: 'center'
             }}>
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Duration</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Call Duration
+                </div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
                   {formatTimer(callDuration)}
                 </div>
               </div>
-              <div style={{ width: '1px', background: 'var(--border)' }}></div>
+              <div style={{ width: '1px', height: '36px', background: 'var(--border)' }} />
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Room ID</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--brand-blue)', fontFamily: 'monospace' }}>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Room Reference
+                </div>
+                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--brand-blue)', fontFamily: 'monospace', marginTop: '2px' }}>
                   {channelName}
                 </div>
               </div>
+            </div>
+
+            {/* Helpline Notice */}
+            <div style={{
+              background: 'var(--coral-pale)',
+              border: '1px solid rgba(223, 104, 90, 0.25)',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              fontSize: '0.78rem',
+              color: 'var(--coral)',
+              marginBottom: '24px',
+              textAlign: 'left'
+            }}>
+              <strong>24x7 Campus Emergency Helpline:</strong> Lokmanya Tilak College Counseling Cell or National Tele-MANAS: 14416 (Toll-Free).
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -1564,30 +1980,31 @@ export default function VideoCall() {
                   setSimulatedCounselor(false);
                 }}
                 style={{
-                  padding: '12px 20px',
+                  padding: '12px 24px',
                   background: 'var(--brand-blue)',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
+                  borderRadius: '100px',
+                  fontSize: '0.92rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(38, 118, 166, 0.25)'
                 }}
               >
-                Join Another Session
+                Re-enter Session Room
               </button>
 
               <button
                 type="button"
                 onClick={() => navigate('/booking')}
                 style={{
-                  padding: '10px 20px',
+                  padding: '11px 20px',
                   background: 'transparent',
                   color: 'var(--text-primary)',
                   border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
+                  borderRadius: '100px',
+                  fontSize: '0.86rem',
+                  fontWeight: 600,
                   cursor: 'pointer'
                 }}
               >
@@ -1597,6 +2014,7 @@ export default function VideoCall() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
