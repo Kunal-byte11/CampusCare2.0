@@ -206,7 +206,27 @@ export default function PsychometricAssessmentModal({ isOpen, onClose, onComplet
       console.warn('Storage sync notice:', e);
     }
 
-    // Attempt backend sync
+    // Send to dynamic database endpoint /api/assessments
+    try {
+      const endpoints = [
+        '/api/assessments',
+        'https://campuscare2-0-backend.onrender.com/api/assessments'
+      ];
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) break;
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn('Assessments database sync notice:', err);
+    }
+
+    // Also record clinical observation note
     try {
       await fetch('/api/bookings/notes', {
         method: 'POST',

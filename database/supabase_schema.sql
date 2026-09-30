@@ -182,5 +182,46 @@ TO service_role, anon, authenticated
 USING (true) 
 WITH CHECK (true);
 
+-- 10. Student Psychometric Assessments Table (PHQ-9, GAD-7, Academic Stress)
+CREATE TABLE IF NOT EXISTS public.psychometric_assessments (
+    id VARCHAR(120) PRIMARY KEY,
+    student_email VARCHAR(255) NOT NULL,
+    student_anon_id VARCHAR(64) NOT NULL,
+    student_name VARCHAR(120) NOT NULL,
+    department VARCHAR(120),
+    year VARCHAR(60),
+    risk_level VARCHAR(30) NOT NULL DEFAULT 'Moderate', -- 'Critical', 'High', 'Moderate', 'Stable'
+    stress_score NUMERIC(4, 1) NOT NULL DEFAULT 5.0,
+    phq9_score INTEGER NOT NULL DEFAULT 0,
+    phq9_severity VARCHAR(60) NOT NULL DEFAULT 'Minimal',
+    phq9_self_harm_flag BOOLEAN NOT NULL DEFAULT FALSE,
+    phq9_answers JSONB NOT NULL DEFAULT '[]'::jsonb,
+    gad7_score INTEGER NOT NULL DEFAULT 0,
+    gad7_severity VARCHAR(60) NOT NULL DEFAULT 'Minimal',
+    gad7_answers JSONB NOT NULL DEFAULT '[]'::jsonb,
+    psychometric_score NUMERIC(4, 1) NOT NULL DEFAULT 5.0,
+    psychometric_answers JSONB NOT NULL DEFAULT '[]'::jsonb,
+    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_psychometric_student_email ON public.psychometric_assessments(student_email);
+CREATE INDEX IF NOT EXISTS idx_psychometric_student_anon ON public.psychometric_assessments(student_anon_id);
+CREATE INDEX IF NOT EXISTS idx_psychometric_risk_level ON public.psychometric_assessments(risk_level);
+CREATE INDEX IF NOT EXISTS idx_psychometric_submitted_at ON public.psychometric_assessments(submitted_at);
+
+-- Enable RLS for Psychometric Assessments
+ALTER TABLE public.psychometric_assessments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public access on psychometric_assessments" ON public.psychometric_assessments;
+CREATE POLICY "Public access on psychometric_assessments" 
+ON public.psychometric_assessments FOR ALL 
+TO service_role, anon, authenticated 
+USING (true) 
+WITH CHECK (true);
+
+
 
 

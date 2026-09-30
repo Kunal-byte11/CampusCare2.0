@@ -510,71 +510,117 @@ export default function CounselorDashboard() {
   const [clinicalReportStudent, setClinicalReportStudent] = useState(null);
   const [activeReportTab, setActiveReportTab] = useState('phq9'); // 'phq9' | 'gad7' | 'psychometrics'
 
-  // Load and merge student submissions from localStorage
+  // Load and merge dynamic student submissions from live Database & localStorage
   useEffect(() => {
-    try {
-      const storedReports = JSON.parse(localStorage.getItem('campuscare_psychometric_reports') || '[]');
-      if (storedReports && storedReports.length > 0) {
-        setStudents(prev => {
-          let updated = [...prev];
-          storedReports.forEach(rep => {
-            const existingIdx = updated.findIndex(s => 
-              (s.email && rep.studentEmail && s.email.toLowerCase() === rep.studentEmail.toLowerCase()) || 
-              s.anonId === rep.studentAnonId
-            );
-            if (existingIdx !== -1) {
-              updated[existingIdx] = {
-                ...updated[existingIdx],
-                riskLevel: rep.riskLevel || updated[existingIdx].riskLevel,
-                stressScore: rep.stressScore || updated[existingIdx].stressScore,
-                screeningScores: {
-                  ...updated[existingIdx].screeningScores,
-                  phq9: `${rep.phq9.score}/27 (${rep.phq9.severity})`,
-                  gad7: `${rep.gad7.score}/21 (${rep.gad7.severity})`
-                },
-                psychometricReport: rep
-              };
-            } else {
-              // Prepend newly submitted live student
-              updated.unshift({
-                id: `std_live_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-                name: rep.studentName || 'Student Participant',
-                email: rep.studentEmail || 'student@ltce.in',
-                anonId: rep.studentAnonId || 'LTCE-INTAKE-LIVE',
-                department: rep.department || 'Computer Science & Engineering',
-                year: rep.year || '3rd Year',
-                avatar: '👨‍🎓',
-                riskLevel: rep.riskLevel || 'Moderate',
-                stressScore: rep.stressScore || 6.5,
-                primaryIssue: 'Intake Mental Health Screening Completed',
-                emotionalState: rep.riskLevel === 'Critical' ? 'Elevated Distress' : 'Moderate Agitation',
-                detectedBehaviors: [
-                  `Intake assessment submitted on ${new Date(rep.timestamp).toLocaleDateString()}`,
-                  `PHQ-9 Score: ${rep.phq9.score}/27 (${rep.phq9.severity})`,
-                  `GAD-7 Score: ${rep.gad7.score}/21 (${rep.gad7.severity})`,
-                  rep.phq9.selfHarmFlag ? '🚨 Safety Flag: Endorsed Question 9 (Self-harm / suicidal thoughts)' : 'No acute safety flag detected'
-                ],
-                aiSentimentScore: rep.riskLevel === 'Critical' ? 'High Risk' : 'Moderate',
-                lastActive: 'Just now (Screening completed)',
-                appointmentsCount: 0,
-                screeningScores: {
-                  gad7: `${rep.gad7.score}/21 (${rep.gad7.severity})`,
-                  phq9: `${rep.phq9.score}/27 (${rep.phq9.severity})`,
-                  sleepScore: '5.0/10'
-                },
-                counselorRecommendation: rep.riskLevel === 'Critical' 
-                  ? 'Urgent clinical intake session required; schedule 1:1 consultation immediately.'
-                  : 'Review responses during next scheduled academic wellness check-in.',
-                psychometricReport: rep
-              });
+    let isMounted = true;
+
+    async function loadDynamicAssessments() {
+      let assessmentsFromDb = [];
+
+      // 1. Try fetching from live database API
+      try {
+        const endpoints = [
+          '/api/assessments',
+          'https://campuscare2-0-backend.onrender.com/api/assessments'
+        ];
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(ep);
+            if (res.ok) {
+              const data = await res.json();
+              if (data?.assessments && data.assessments.length > 0) {
+                assessmentsFromDb = data.assessments;
+                break;
+              }
             }
-          });
-          return updated;
-        });
+          } catch (e) {}
+        }
+      } catch (err) {
+        console.warn('Database fetch notice:', err);
       }
-    } catch (e) {
-      console.error('Error parsing stored psychometric reports:', e);
+
+      // 2. Also read localStorage for offline or instant locally saved submissions
+      let storedReports = [];
+      try {
+        storedReports = JSON.parse(localStorage.getItem('campuscare_psychometric_reports') || '[]');
+      } catch (e) {}
+
+      // Combine database assessments with localStorage (deduplicating by student email/anonId)
+      const allReports = [...assessmentsFromDb];
+      storedReports.forEach(localRep => {
+        if (!allReports.some(r => 
+          (r.studentEmail && localRep.studentEmail && r.studentEmail.toLowerCase() === localRep.studentEmail.toLowerCase()) || 
+          r.studentAnonId === localRep.studentAnonId
+        )) {
+          allReports.push(localRep);
+        }
+      });
+
+      if (!isMounted || allReports.length === 0) return;
+
+      setStudents(prev => {
+        let updated = [...prev];
+        allReports.forEach(rep => {
+          const existingIdx = updated.findIndex(s => 
+            (s.email && rep.studentEmail && s.email.toLowerCase() === rep.studentEmail.toLowerCase()) || 
+            s.anonId === rep.studentAnonId
+          );
+          if (existingIdx !== -1) {
+            updated[existingIdx] = {
+              ...updated[existingIdx],
+              riskLevel: rep.riskLevel || updated[existingIdx].riskLevel,
+              stressScore: rep.stressScore || updated[existingIdx].stressScore,
+              screeningScores: {
+                ...updated[existingIdx].screeningScores,
+                phq9: `${rep.phq9?.score ?? 0}/27 (${rep.phq9?.severity || 'Assessed'})`,
+                gad7: `${rep.gad7?.score ?? 0}/21 (${rep.gad7?.severity || 'Assessed'})`
+              },
+              psychometricReport: rep
+            };
+          } else {
+            // Dynamically add newly registered student from database
+            updated.unshift({
+              id: rep.id || `std_live_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+              name: rep.studentName || 'Student Participant',
+              email: rep.studentEmail || 'student@ltce.in',
+              anonId: rep.studentAnonId || 'LTCE-INTAKE-LIVE',
+              department: rep.department || 'Computer Science & Engineering',
+              year: rep.year || '3rd Year',
+              avatar: '👨‍🎓',
+              riskLevel: rep.riskLevel || 'Moderate',
+              stressScore: rep.stressScore || 6.5,
+              primaryIssue: 'Intake Mental Health Screening Completed',
+              emotionalState: rep.riskLevel === 'Critical' ? 'Elevated Distress' : 'Moderate Agitation',
+              detectedBehaviors: [
+                `Intake assessment submitted on ${new Date(rep.timestamp || Date.now()).toLocaleDateString()}`,
+                `PHQ-9 Score: ${rep.phq9?.score ?? 0}/27 (${rep.phq9?.severity || 'Assessed'})`,
+                `GAD-7 Score: ${rep.gad7?.score ?? 0}/21 (${rep.gad7?.severity || 'Assessed'})`,
+                rep.phq9?.selfHarmFlag ? '🚨 Safety Flag: Endorsed Question 9 (Self-harm / suicidal thoughts)' : 'No acute safety flag detected'
+              ],
+              aiSentimentScore: rep.riskLevel === 'Critical' ? 'High Risk' : 'Moderate',
+              lastActive: 'Just now (Screening completed)',
+              appointmentsCount: 0,
+              screeningScores: {
+                gad7: `${rep.gad7?.score ?? 0}/21 (${rep.gad7?.severity || 'Assessed'})`,
+                phq9: `${rep.phq9?.score ?? 0}/27 (${rep.phq9?.severity || 'Assessed'})`,
+                sleepScore: '5.0/10'
+              },
+              counselorRecommendation: rep.riskLevel === 'Critical' 
+                ? 'Urgent clinical intake session required; schedule 1:1 consultation immediately.'
+                : 'Review responses during next scheduled academic wellness check-in.',
+              psychometricReport: rep
+            });
+          }
+        });
+        return updated;
+      });
     }
+
+    loadDynamicAssessments();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Filtered Students

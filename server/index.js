@@ -9,6 +9,7 @@ import gamificationRouter from './routes/gamification.js';
 import agoraRouter from './routes/agora.js';
 import forumRouter from './routes/forum.js';
 import chatRouter from './routes/chat.js';
+import assessmentsRouter from './routes/assessments.js';
 import { checkSupabaseHealth, isSupabaseConfigured } from './config/supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -47,6 +48,7 @@ app.use('/api/gamification', gamificationRouter);
 app.use('/api/agora', agoraRouter);
 app.use('/api/forum', forumRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/assessments', assessmentsRouter);
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
