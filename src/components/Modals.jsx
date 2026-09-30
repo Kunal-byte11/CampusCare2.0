@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
+import PsychometricAssessmentModal from './PsychometricAssessmentModal';
 
 export default function Modals({ activeModal, closeModal, openModal }) {
   const navigate = useNavigate();
@@ -55,8 +56,18 @@ export default function Modals({ activeModal, closeModal, openModal }) {
     const res = await handleGoogleCredentialResponse(credentialResponse);
     setGoogleLoading(false);
     if (res.success) {
-      closeModal();
-      navigate('/home');
+      if (res.user?.role === 'counselor') {
+        closeModal();
+        navigate('/counselor-dashboard');
+      } else {
+        const taken = localStorage.getItem(`campuscare_assessment_taken_${res.user?.email || res.user?.anonId}`);
+        if (!taken) {
+          openModal('assessment');
+        } else {
+          closeModal();
+          navigate('/home');
+        }
+      }
     } else {
       const errMsg = res.error || 'Google authentication failed.';
       if (activeModal === 'login') {
@@ -108,11 +119,17 @@ export default function Modals({ activeModal, closeModal, openModal }) {
 
     const res = await login(loginAnonId, loginPassword);
     if (res.success) {
-      closeModal();
       if (res.user?.role === 'counselor') {
-        navigate('/booking');
+        closeModal();
+        navigate('/counselor-dashboard');
       } else {
-        navigate('/home');
+        const taken = localStorage.getItem(`campuscare_assessment_taken_${res.user?.email || res.user?.anonId}`);
+        if (!taken) {
+          openModal('assessment');
+        } else {
+          closeModal();
+          navigate('/home');
+        }
       }
     } else {
       setLoginError(res.error || 'Login failed. Please check your credentials.');
@@ -139,7 +156,7 @@ export default function Modals({ activeModal, closeModal, openModal }) {
 
     if (res.success) {
       closeModal();
-      navigate('/booking');
+      navigate('/counselor-dashboard');
     } else {
       setLoginError(res.error || 'Counselor login failed. Please verify credentials.');
     }
@@ -837,6 +854,17 @@ export default function Modals({ activeModal, closeModal, openModal }) {
             </div>
           </div>
         </div>
+      )}
+
+      {activeModal === 'assessment' && (
+        <PsychometricAssessmentModal
+          isOpen={true}
+          onClose={closeModal}
+          onCompleted={() => {
+            closeModal();
+            navigate('/home');
+          }}
+        />
       )}
     </>
   );

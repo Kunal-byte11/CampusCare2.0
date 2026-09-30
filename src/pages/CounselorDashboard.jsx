@@ -25,7 +25,9 @@ import {
   HelpCircle,
   Calendar,
   Save,
-  Check
+  Check,
+  ShieldAlert,
+  Info
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -257,6 +259,236 @@ const INITIAL_STUDENTS_BEHAVIOR = [
   }
 ];
 
+// Seeded Comprehensive Clinical Assessments (PHQ-9, GAD-7, Psychometric Stress)
+const SEEDED_PSYCHOMETRIC_REPORTS = {
+  'kunaldubey975@gmail.com': {
+    id: 'report_kunal_demo',
+    timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
+    studentName: 'Kunal Dubey',
+    studentEmail: 'kunaldubey975@gmail.com',
+    studentAnonId: 'LTCE-CS-2024-8841',
+    department: 'Computer Science & Engineering',
+    year: '3rd Year (Semester 5)',
+    riskLevel: 'Critical',
+    stressScore: 8.8,
+    phq9: {
+      score: 16,
+      severity: 'Moderately Severe',
+      selfHarmFlag: true,
+      answers: [
+        { question: 'Little interest or pleasure in doing things', score: 2, label: 'More than half the days' },
+        { question: 'Feeling down, depressed, or hopeless', score: 2, label: 'More than half the days' },
+        { question: 'Trouble falling or staying asleep, or sleeping too much', score: 3, label: 'Nearly every day' },
+        { question: 'Feeling tired or having little energy', score: 3, label: 'Nearly every day' },
+        { question: 'Poor appetite or overeating', score: 1, label: 'Several days' },
+        { question: 'Feeling bad about yourself — or that you are a failure', score: 2, label: 'More than half the days' },
+        { question: 'Trouble concentrating on things, such as reading or studying', score: 2, label: 'More than half the days' },
+        { question: 'Moving or speaking slowly, or fidgety/restless', score: 0, label: 'Not at all' },
+        { question: 'Thoughts that you would be better off dead, or hurting yourself', score: 1, label: 'Several days' }
+      ]
+    },
+    gad7: {
+      score: 16,
+      severity: 'Severe Anxiety',
+      answers: [
+        { question: 'Feeling nervous, anxious, or on edge', score: 3, label: 'Nearly every day' },
+        { question: 'Not being able to stop or control worrying', score: 3, label: 'Nearly every day' },
+        { question: 'Worrying too much about different things', score: 2, label: 'More than half the days' },
+        { question: 'Trouble relaxing', score: 3, label: 'Nearly every day' },
+        { question: 'Being so restless that it is hard to sit still', score: 2, label: 'More than half the days' },
+        { question: 'Becoming easily annoyed or irritable', score: 2, label: 'More than half the days' },
+        { question: 'Feeling afraid, as if something awful might happen', score: 1, label: 'Several days' }
+      ]
+    },
+    psychometrics: {
+      score: 8.8,
+      answers: [
+        { question: 'I feel overwhelmed by my academic course load and project deadlines.', domain: 'Academic Overload', score: 5, label: 'Strongly Agree' },
+        { question: 'I experience physical symptoms (racing heartbeat, tension, nausea) before exams.', domain: 'Evaluation Panic', score: 5, label: 'Strongly Agree' },
+        { question: 'I feel like an imposter and worry I do not belong in my program.', domain: 'Imposter Syndrome', score: 4, label: 'Agree' },
+        { question: 'My sleep schedule is irregular and leaves me exhausted during lectures.', domain: 'Sleep Disruption', score: 5, label: 'Strongly Agree' },
+        { question: 'I have friends or faculty on campus I can openly talk to when struggling.', domain: 'Social Support', score: 3, label: 'Neutral' }
+      ]
+    }
+  },
+  'ananya.sharma@ltce.in': {
+    id: 'report_ananya_demo',
+    timestamp: new Date(Date.now() - 3600000 * 18).toISOString(),
+    studentName: 'Ananya Sharma',
+    studentEmail: 'ananya.sharma@ltce.in',
+    studentAnonId: 'LTCE-IT-2023-4102',
+    department: 'Information Technology',
+    year: '2nd Year (Semester 3)',
+    riskLevel: 'Critical',
+    stressScore: 8.4,
+    phq9: {
+      score: 18,
+      severity: 'Moderately Severe',
+      selfHarmFlag: false,
+      answers: [
+        { question: 'Little interest or pleasure in doing things', score: 3, label: 'Nearly every day' },
+        { question: 'Feeling down, depressed, or hopeless', score: 3, label: 'Nearly every day' },
+        { question: 'Trouble falling or staying asleep, or sleeping too much', score: 2, label: 'More than half the days' },
+        { question: 'Feeling tired or having little energy', score: 3, label: 'Nearly every day' },
+        { question: 'Poor appetite or overeating', score: 2, label: 'More than half the days' },
+        { question: 'Feeling bad about yourself — or that you are a failure', score: 3, label: 'Nearly every day' },
+        { question: 'Trouble concentrating on things, such as reading or studying', score: 2, label: 'More than half the days' },
+        { question: 'Moving or speaking slowly, or fidgety/restless', score: 0, label: 'Not at all' },
+        { question: 'Thoughts that you would be better off dead, or hurting yourself', score: 0, label: 'Not at all' }
+      ]
+    },
+    gad7: {
+      score: 12,
+      severity: 'Moderate Anxiety',
+      answers: [
+        { question: 'Feeling nervous, anxious, or on edge', score: 2, label: 'More than half the days' },
+        { question: 'Not being able to stop or control worrying', score: 2, label: 'More than half the days' },
+        { question: 'Worrying too much about different things', score: 2, label: 'More than half the days' },
+        { question: 'Trouble relaxing', score: 2, label: 'More than half the days' },
+        { question: 'Being so restless that it is hard to sit still', score: 1, label: 'Several days' },
+        { question: 'Becoming easily annoyed or irritable', score: 1, label: 'Several days' },
+        { question: 'Feeling afraid, as if something awful might happen', score: 2, label: 'More than half the days' }
+      ]
+    },
+    psychometrics: {
+      score: 8.4,
+      answers: [
+        { question: 'I feel overwhelmed by my academic course load and project deadlines.', domain: 'Academic Overload', score: 4, label: 'Agree' },
+        { question: 'I experience physical symptoms (racing heartbeat, tension, nausea) before exams.', domain: 'Evaluation Panic', score: 3, label: 'Neutral' },
+        { question: 'I feel like an imposter and worry I do not belong in my program.', domain: 'Imposter Syndrome', score: 5, label: 'Strongly Agree' },
+        { question: 'My sleep schedule is irregular and leaves me exhausted during lectures.', domain: 'Sleep Disruption', score: 4, label: 'Agree' },
+        { question: 'I have friends or faculty on campus I can openly talk to when struggling.', domain: 'Social Support', score: 1, label: 'Strongly Disagree' }
+      ]
+    }
+  },
+  'student.demo@gmail.com': {
+    id: 'report_aarav_demo',
+    timestamp: new Date(Date.now() - 3600000 * 8).toISOString(),
+    studentName: 'Aarav Sharma',
+    studentEmail: 'student.demo@gmail.com',
+    studentAnonId: 'LTCE-DS-2024-1011',
+    department: 'Data Science & AI',
+    year: '2nd Year (Semester 4)',
+    riskLevel: 'High',
+    stressScore: 7.2,
+    phq9: {
+      score: 7,
+      severity: 'Mild',
+      selfHarmFlag: false,
+      answers: [
+        { question: 'Little interest or pleasure in doing things', score: 1, label: 'Several days' },
+        { question: 'Feeling down, depressed, or hopeless', score: 1, label: 'Several days' },
+        { question: 'Trouble falling or staying asleep, or sleeping too much', score: 1, label: 'Several days' },
+        { question: 'Feeling tired or having little energy', score: 2, label: 'More than half the days' },
+        { question: 'Poor appetite or overeating', score: 0, label: 'Not at all' },
+        { question: 'Feeling bad about yourself — or that you are a failure', score: 1, label: 'Several days' },
+        { question: 'Trouble concentrating on things, such as reading or studying', score: 1, label: 'Several days' },
+        { question: 'Moving or speaking slowly, or fidgety/restless', score: 0, label: 'Not at all' },
+        { question: 'Thoughts that you would be better off dead, or hurting yourself', score: 0, label: 'Not at all' }
+      ]
+    },
+    gad7: {
+      score: 14,
+      severity: 'Moderate Anxiety',
+      answers: [
+        { question: 'Feeling nervous, anxious, or on edge', score: 2, label: 'More than half the days' },
+        { question: 'Not being able to stop or control worrying', score: 3, label: 'Nearly every day' },
+        { question: 'Worrying too much about different things', score: 3, label: 'Nearly every day' },
+        { question: 'Trouble relaxing', score: 2, label: 'More than half the days' },
+        { question: 'Being so restless that it is hard to sit still', score: 1, label: 'Several days' },
+        { question: 'Becoming easily annoyed or irritable', score: 2, label: 'More than half the days' },
+        { question: 'Feeling afraid, as if something awful might happen', score: 1, label: 'Several days' }
+      ]
+    },
+    psychometrics: {
+      score: 7.2,
+      answers: [
+        { question: 'I feel overwhelmed by my academic course load and project deadlines.', domain: 'Academic Overload', score: 4, label: 'Agree' },
+        { question: 'I experience physical symptoms (racing heartbeat, tension, nausea) before exams.', domain: 'Evaluation Panic', score: 4, label: 'Agree' },
+        { question: 'I feel like an imposter and worry I do not belong in my program.', domain: 'Imposter Syndrome', score: 4, label: 'Agree' },
+        { question: 'My sleep schedule is irregular and leaves me exhausted during lectures.', domain: 'Sleep Disruption', score: 3, label: 'Neutral' },
+        { question: 'I have friends or faculty on campus I can openly talk to when struggling.', domain: 'Social Support', score: 4, label: 'Agree' }
+      ]
+    }
+  }
+};
+
+// Helper: Synthesize or retrieve student's full psychometric clinical assessment
+const getStudentClinicalReport = (student) => {
+  if (student.psychometricReport) return student.psychometricReport;
+
+  try {
+    const stored = JSON.parse(localStorage.getItem('campuscare_psychometric_reports') || '[]');
+    const match = stored.find(r => 
+      (r.studentEmail && student.email && r.studentEmail.toLowerCase() === student.email.toLowerCase()) || 
+      r.studentAnonId === student.anonId
+    );
+    if (match) return match;
+  } catch (e) {}
+
+  if (student.email && SEEDED_PSYCHOMETRIC_REPORTS[student.email]) {
+    return SEEDED_PSYCHOMETRIC_REPORTS[student.email];
+  }
+
+  // Fallback synthesized clinical report
+  const isCrit = student.riskLevel === 'Critical';
+  const isHigh = student.riskLevel === 'High';
+  const isMod = student.riskLevel === 'Moderate';
+  const phqScore = isCrit ? 16 : isHigh ? 11 : isMod ? 7 : 3;
+  const gadScore = isCrit ? 15 : isHigh ? 12 : isMod ? 8 : 2;
+
+  return {
+    id: `report_${student.id}`,
+    timestamp: new Date().toISOString(),
+    studentName: student.name,
+    studentEmail: student.email,
+    studentAnonId: student.anonId,
+    department: student.department,
+    year: student.year,
+    riskLevel: student.riskLevel,
+    stressScore: student.stressScore,
+    phq9: {
+      score: phqScore,
+      severity: phqScore >= 20 ? 'Severe' : phqScore >= 15 ? 'Moderately Severe' : phqScore >= 10 ? 'Moderate' : phqScore >= 5 ? 'Mild' : 'Minimal',
+      selfHarmFlag: isCrit,
+      answers: [
+        { question: 'Little interest or pleasure in doing things', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Feeling down, depressed, or hopeless', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Trouble falling or staying asleep, or sleeping too much', score: isCrit ? 3 : isHigh ? 2 : 1, label: isCrit ? 'Nearly every day' : 'Several days' },
+        { question: 'Feeling tired or having little energy', score: isCrit ? 3 : 2, label: isCrit ? 'Nearly every day' : 'More than half the days' },
+        { question: 'Poor appetite or overeating', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Feeling bad about yourself — or that you are a failure', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Trouble concentrating on things, such as reading or studying', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Moving or speaking slowly, or fidgety/restless', score: 0, label: 'Not at all' },
+        { question: 'Thoughts that you would be better off dead, or hurting yourself', score: isCrit ? 1 : 0, label: isCrit ? 'Several days' : 'Not at all' }
+      ]
+    },
+    gad7: {
+      score: gadScore,
+      severity: gadScore >= 15 ? 'Severe Anxiety' : gadScore >= 10 ? 'Moderate Anxiety' : gadScore >= 5 ? 'Mild Anxiety' : 'Minimal Anxiety',
+      answers: [
+        { question: 'Feeling nervous, anxious, or on edge', score: isCrit ? 3 : isHigh ? 2 : 1, label: isCrit ? 'Nearly every day' : 'Several days' },
+        { question: 'Not being able to stop or control worrying', score: isCrit ? 3 : 2, label: isCrit ? 'Nearly every day' : 'More than half the days' },
+        { question: 'Worrying too much about different things', score: isCrit ? 2 : 2, label: 'More than half the days' },
+        { question: 'Trouble relaxing', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Being so restless that it is hard to sit still', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Becoming easily annoyed or irritable', score: isCrit ? 2 : 1, label: isCrit ? 'More than half the days' : 'Several days' },
+        { question: 'Feeling afraid, as if something awful might happen', score: isCrit ? 1 : 1, label: 'Several days' }
+      ]
+    },
+    psychometrics: {
+      score: student.stressScore,
+      answers: [
+        { question: 'I feel overwhelmed by my academic course load and project deadlines.', domain: 'Academic Overload', score: isCrit ? 5 : 4, label: isCrit ? 'Strongly Agree' : 'Agree' },
+        { question: 'I experience physical symptoms (racing heartbeat, tension, nausea) before exams.', domain: 'Evaluation Panic', score: isCrit ? 5 : 3, label: isCrit ? 'Strongly Agree' : 'Neutral' },
+        { question: 'I feel like an imposter and worry I do not belong in my program.', domain: 'Imposter Syndrome', score: isCrit ? 4 : 3, label: isCrit ? 'Agree' : 'Neutral' },
+        { question: 'My sleep schedule is irregular and leaves me exhausted during lectures.', domain: 'Sleep Disruption', score: isCrit ? 5 : 3, label: isCrit ? 'Strongly Agree' : 'Neutral' },
+        { question: 'I have friends or faculty on campus I can openly talk to when struggling.', domain: 'Social Support', score: isCrit ? 2 : 4, label: isCrit ? 'Disagree' : 'Agree' }
+      ]
+    }
+  };
+};
+
 export default function CounselorDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -273,6 +505,77 @@ export default function CounselorDashboard() {
   const [noteModalStudent, setNoteModalStudent] = useState(null);
   const [noteContent, setNoteContent] = useState('');
   const [savingNote, setSavingNote] = useState(false);
+
+  // Clinical Psychometric Report Modal State (PHQ-9, GAD-7, Psychometrics)
+  const [clinicalReportStudent, setClinicalReportStudent] = useState(null);
+  const [activeReportTab, setActiveReportTab] = useState('phq9'); // 'phq9' | 'gad7' | 'psychometrics'
+
+  // Load and merge student submissions from localStorage
+  useEffect(() => {
+    try {
+      const storedReports = JSON.parse(localStorage.getItem('campuscare_psychometric_reports') || '[]');
+      if (storedReports && storedReports.length > 0) {
+        setStudents(prev => {
+          let updated = [...prev];
+          storedReports.forEach(rep => {
+            const existingIdx = updated.findIndex(s => 
+              (s.email && rep.studentEmail && s.email.toLowerCase() === rep.studentEmail.toLowerCase()) || 
+              s.anonId === rep.studentAnonId
+            );
+            if (existingIdx !== -1) {
+              updated[existingIdx] = {
+                ...updated[existingIdx],
+                riskLevel: rep.riskLevel || updated[existingIdx].riskLevel,
+                stressScore: rep.stressScore || updated[existingIdx].stressScore,
+                screeningScores: {
+                  ...updated[existingIdx].screeningScores,
+                  phq9: `${rep.phq9.score}/27 (${rep.phq9.severity})`,
+                  gad7: `${rep.gad7.score}/21 (${rep.gad7.severity})`
+                },
+                psychometricReport: rep
+              };
+            } else {
+              // Prepend newly submitted live student
+              updated.unshift({
+                id: `std_live_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                name: rep.studentName || 'Student Participant',
+                email: rep.studentEmail || 'student@ltce.in',
+                anonId: rep.studentAnonId || 'LTCE-INTAKE-LIVE',
+                department: rep.department || 'Computer Science & Engineering',
+                year: rep.year || '3rd Year',
+                avatar: '👨‍🎓',
+                riskLevel: rep.riskLevel || 'Moderate',
+                stressScore: rep.stressScore || 6.5,
+                primaryIssue: 'Intake Mental Health Screening Completed',
+                emotionalState: rep.riskLevel === 'Critical' ? 'Elevated Distress' : 'Moderate Agitation',
+                detectedBehaviors: [
+                  `Intake assessment submitted on ${new Date(rep.timestamp).toLocaleDateString()}`,
+                  `PHQ-9 Score: ${rep.phq9.score}/27 (${rep.phq9.severity})`,
+                  `GAD-7 Score: ${rep.gad7.score}/21 (${rep.gad7.severity})`,
+                  rep.phq9.selfHarmFlag ? '🚨 Safety Flag: Endorsed Question 9 (Self-harm / suicidal thoughts)' : 'No acute safety flag detected'
+                ],
+                aiSentimentScore: rep.riskLevel === 'Critical' ? 'High Risk' : 'Moderate',
+                lastActive: 'Just now (Screening completed)',
+                appointmentsCount: 0,
+                screeningScores: {
+                  gad7: `${rep.gad7.score}/21 (${rep.gad7.severity})`,
+                  phq9: `${rep.phq9.score}/27 (${rep.phq9.severity})`,
+                  sleepScore: '5.0/10'
+                },
+                counselorRecommendation: rep.riskLevel === 'Critical' 
+                  ? 'Urgent clinical intake session required; schedule 1:1 consultation immediately.'
+                  : 'Review responses during next scheduled academic wellness check-in.',
+                psychometricReport: rep
+              });
+            }
+          });
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.error('Error parsing stored psychometric reports:', e);
+    }
+  }, []);
 
   // Filtered Students
   const filteredStudents = useMemo(() => {
@@ -935,7 +1238,33 @@ export default function CounselorDashboard() {
                       ))}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      {/* View PHQ-9 & GAD-7 Report Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setClinicalReportStudent(student);
+                          setActiveReportTab('phq9');
+                        }}
+                        style={{
+                          background: 'rgba(235, 87, 87, 0.1)',
+                          color: 'var(--coral)',
+                          border: '1px solid rgba(235, 87, 87, 0.35)',
+                          padding: '7px 14px',
+                          borderRadius: '100px',
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 6px rgba(235, 87, 87, 0.08)'
+                        }}
+                      >
+                        <ShieldAlert size={14} />
+                        <span>📋 PHQ-9 &amp; GAD-7 Report</span>
+                      </button>
+
                       {/* View Full Dossier */}
                       <button
                         type="button"
@@ -1294,6 +1623,566 @@ export default function CounselorDashboard() {
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* 4. CONFIDENTIAL CLINICAL INTAKE REPORT MODAL (PHQ-9, GAD-7, PSYCHOMETRICS) */}
+      {/* ========================================================================= */}
+      {clinicalReportStudent && (() => {
+        const report = getStudentClinicalReport(clinicalReportStudent);
+        const hasSafetyAlert = report.phq9?.selfHarmFlag || (report.phq9?.answers && report.phq9.answers[8]?.score > 0);
+        const isCrit = report.riskLevel === 'Critical';
+        const isHigh = report.riskLevel === 'High';
+        const isMod = report.riskLevel === 'Moderate';
+        const badgeBg = isCrit ? 'var(--coral-pale)' : isHigh ? 'var(--orange-pale)' : isMod ? 'var(--teal-pale)' : 'var(--green-pale)';
+        const badgeColor = isCrit ? 'var(--coral)' : isHigh ? 'var(--orange)' : isMod ? 'var(--teal)' : 'var(--green)';
+
+        return (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            zIndex: 10000,
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+          }}>
+            <div style={{
+              maxWidth: '850px',
+              width: '100%',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: '24px',
+              padding: '28px 32px',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.35)',
+              position: 'relative'
+            }}>
+              {/* Top Institutional Classification Bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '16px',
+                borderBottom: '1px solid var(--border)',
+                marginBottom: '20px',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{
+                    background: 'rgba(235, 87, 87, 0.12)',
+                    color: 'var(--coral)',
+                    padding: '4px 12px',
+                    borderRadius: '100px',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}>
+                    <ShieldAlert size={13} />
+                    Confidential Clinical Dossier • Counselor Access Only
+                  </span>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Assessment ID: <strong style={{ fontFamily: 'monospace' }}>{report.id}</strong>
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setClinicalReportStudent(null)}
+                  style={{
+                    background: 'var(--sidebar-bg)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Patient Identity & Submission Timestamp */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '16px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '14px',
+                    background: 'var(--sidebar-bg)',
+                    border: '1px solid var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.8rem'
+                  }}>
+                    {clinicalReportStudent.avatar}
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+                      {report.studentName}
+                    </h2>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      {report.studentAnonId} • {report.department} ({report.year})
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      Verified Email: {report.studentEmail} • Submitted: {new Date(report.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                    Triage Risk Stratification
+                  </div>
+                  <span style={{
+                    background: badgeBg,
+                    color: badgeColor,
+                    padding: '6px 16px',
+                    borderRadius: '100px',
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.4px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeColor }} />
+                    {report.riskLevel.toUpperCase()} RISK
+                  </span>
+                </div>
+              </div>
+
+              {/* Suicide / Self-Harm Safety Alert Callout if Q9 Flagged */}
+              {hasSafetyAlert && (
+                <div style={{
+                  background: 'rgba(235, 87, 87, 0.1)',
+                  border: '1.5px solid var(--coral)',
+                  borderRadius: '12px',
+                  padding: '14px 18px',
+                  marginBottom: '20px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px'
+                }}>
+                  <AlertTriangle size={20} color="var(--coral)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--coral)' }}>
+                      CRITICAL SAFETY ALERT: Suicidal / Self-Harm Ideation Endorsement (PHQ-9 Question 9)
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-primary)', marginTop: '3px', lineHeight: 1.45 }}>
+                      The student endorsed having thoughts that they would be "better off dead, or hurting themselves". Immediate clinical triage protocol is triggered: verify immediate safety, review support systems, and schedule a priority 1:1 consultation.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Informational Privacy Note Banner */}
+              <div style={{
+                background: 'var(--sidebar-bg)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                padding: '10px 14px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '0.78rem',
+                color: 'var(--text-secondary)'
+              }}>
+                <Info size={16} color="var(--brand-blue)" style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Student Safeguard Active:</strong> To prevent diagnostic anxiety and clinical stigmatization, these standardized scores and severity ratings are <strong>strictly hidden from the student</strong>. The student received a calming self-care summary with breathing exercises.
+                </span>
+              </div>
+
+              {/* Clinical Tri-Metric Cards Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '14px',
+                marginBottom: '24px'
+              }}>
+                {/* PHQ-9 Card */}
+                <div style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '14px',
+                  padding: '16px',
+                  borderTop: '4px solid var(--coral)',
+                  boxShadow: 'var(--shadow-subtle)'
+                }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    PHQ-9 Depression Screener
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', margin: '8px 0 4px' }}>
+                    <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--coral)' }}>
+                      {report.phq9.score}
+                    </span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>/ 27</span>
+                  </div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    {report.phq9.severity}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Cutoffs: 0-4 Min • 5-9 Mild • 10-14 Mod • 15-19 Mod-Sev • 20+ Sev
+                  </div>
+                </div>
+
+                {/* GAD-7 Card */}
+                <div style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '14px',
+                  padding: '16px',
+                  borderTop: '4px solid var(--orange)',
+                  boxShadow: 'var(--shadow-subtle)'
+                }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    GAD-7 Anxiety Screener
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', margin: '8px 0 4px' }}>
+                    <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--orange)' }}>
+                      {report.gad7.score}
+                    </span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>/ 21</span>
+                  </div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    {report.gad7.severity}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Cutoffs: 0-4 Min • 5-9 Mild • 10-14 Mod • 15-21 Severe
+                  </div>
+                </div>
+
+                {/* Academic Stress Card */}
+                <div style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '14px',
+                  padding: '16px',
+                  borderTop: '4px solid var(--teal)',
+                  boxShadow: 'var(--shadow-subtle)'
+                }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    Psychometric Academic Stress
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', margin: '8px 0 4px' }}>
+                    <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--teal)' }}>
+                      {report.stressScore}
+                    </span>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>/ 10</span>
+                  </div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    {report.stressScore >= 8 ? 'High Academic Distress' : report.stressScore >= 5 ? 'Moderate Academic Strain' : 'Well-Balanced'}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Domains: Workload, Exam Panic, Imposter Syndrome, Sleep
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Tabs for Itemized Review */}
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                borderBottom: '1px solid var(--border)',
+                marginBottom: '16px',
+                paddingBottom: '2px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveReportTab('phq9')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px 8px 0 0',
+                    border: 'none',
+                    borderBottom: activeReportTab === 'phq9' ? '2.5px solid var(--coral)' : '2.5px solid transparent',
+                    background: activeReportTab === 'phq9' ? 'var(--sidebar-bg)' : 'transparent',
+                    color: activeReportTab === 'phq9' ? 'var(--coral)' : 'var(--text-secondary)',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  PHQ-9 Depression Screener ({report.phq9?.answers?.length || 9} Items)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveReportTab('gad7')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px 8px 0 0',
+                    border: 'none',
+                    borderBottom: activeReportTab === 'gad7' ? '2.5px solid var(--orange)' : '2.5px solid transparent',
+                    background: activeReportTab === 'gad7' ? 'var(--sidebar-bg)' : 'transparent',
+                    color: activeReportTab === 'gad7' ? 'var(--orange)' : 'var(--text-secondary)',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  GAD-7 Anxiety Scale ({report.gad7?.answers?.length || 7} Items)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveReportTab('psychometrics')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px 8px 0 0',
+                    border: 'none',
+                    borderBottom: activeReportTab === 'psychometrics' ? '2.5px solid var(--teal)' : '2.5px solid transparent',
+                    background: activeReportTab === 'psychometrics' ? 'var(--sidebar-bg)' : 'transparent',
+                    color: activeReportTab === 'psychometrics' ? 'var(--teal)' : 'var(--text-secondary)',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Academic Stress Subscale ({report.psychometrics?.answers?.length || 5} Items)
+                </button>
+              </div>
+
+              {/* Itemized Question & Response Table */}
+              <div style={{
+                background: 'var(--sidebar-bg)',
+                border: '1px solid var(--border)',
+                borderRadius: '14px',
+                overflow: 'hidden',
+                marginBottom: '24px'
+              }}>
+                {activeReportTab === 'phq9' && (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                        <th style={{ padding: '12px 14px', width: '40px' }}>#</th>
+                        <th style={{ padding: '12px 14px' }}>Clinical Prompt (Past 2 Weeks)</th>
+                        <th style={{ padding: '12px 14px', width: '180px' }}>Student Response</th>
+                        <th style={{ padding: '12px 14px', width: '70px', textAlign: 'center' }}>Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.phq9.answers.map((item, idx) => {
+                        const isQ9 = idx === 8;
+                        const isHighlighted = item.score >= 2 || (isQ9 && item.score > 0);
+                        return (
+                          <tr 
+                            key={idx} 
+                            style={{ 
+                              borderBottom: '1px solid var(--border-light)',
+                              background: isQ9 && item.score > 0 ? 'rgba(235, 87, 87, 0.08)' : isHighlighted ? 'rgba(242, 153, 74, 0.05)' : 'transparent'
+                            }}
+                          >
+                            <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                              Q{idx + 1}
+                            </td>
+                            <td style={{ padding: '12px 14px', color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                              {item.question}
+                              {isQ9 && item.score > 0 && (
+                                <span style={{
+                                  display: 'inline-block',
+                                  marginLeft: '8px',
+                                  background: 'var(--coral)',
+                                  color: '#fff',
+                                  fontSize: '0.68rem',
+                                  fontWeight: 800,
+                                  padding: '1px 6px',
+                                  borderRadius: '4px'
+                                }}>
+                                  SELF-HARM FLAG
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ padding: '12px 14px', fontWeight: 600, color: item.score >= 2 ? 'var(--coral)' : 'var(--text-primary)' }}>
+                              {item.label}
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 800, color: item.score >= 2 ? 'var(--coral)' : 'var(--text-secondary)' }}>
+                              +{item.score}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+
+                {activeReportTab === 'gad7' && (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                        <th style={{ padding: '12px 14px', width: '40px' }}>#</th>
+                        <th style={{ padding: '12px 14px' }}>Clinical Prompt (Past 2 Weeks)</th>
+                        <th style={{ padding: '12px 14px', width: '180px' }}>Student Response</th>
+                        <th style={{ padding: '12px 14px', width: '70px', textAlign: 'center' }}>Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.gad7.answers.map((item, idx) => {
+                        const isHighlighted = item.score >= 2;
+                        return (
+                          <tr 
+                            key={idx} 
+                            style={{ 
+                              borderBottom: '1px solid var(--border-light)',
+                              background: isHighlighted ? 'rgba(242, 153, 74, 0.05)' : 'transparent'
+                            }}
+                          >
+                            <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                              Q{idx + 1}
+                            </td>
+                            <td style={{ padding: '12px 14px', color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                              {item.question}
+                            </td>
+                            <td style={{ padding: '12px 14px', fontWeight: 600, color: item.score >= 2 ? 'var(--orange)' : 'var(--text-primary)' }}>
+                              {item.label}
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 800, color: item.score >= 2 ? 'var(--orange)' : 'var(--text-secondary)' }}>
+                              +{item.score}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+
+                {activeReportTab === 'psychometrics' && (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                        <th style={{ padding: '12px 14px', width: '140px' }}>Stress Domain</th>
+                        <th style={{ padding: '12px 14px' }}>Diagnostic Indicator</th>
+                        <th style={{ padding: '12px 14px', width: '160px' }}>Student Rating</th>
+                        <th style={{ padding: '12px 14px', width: '70px', textAlign: 'center' }}>Score</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.psychometrics.answers.map((item, idx) => {
+                        return (
+                          <tr key={idx} style={{ borderBottom: '1px solid var(--border-light)' }}>
+                            <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--brand-blue)' }}>
+                              {item.domain}
+                            </td>
+                            <td style={{ padding: '12px 14px', color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                              {item.question}
+                            </td>
+                            <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                              {item.label}
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 800, color: 'var(--teal)' }}>
+                              {item.score}/5
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* Counselor Action Footer */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                paddingTop: '12px',
+                borderTop: '1px solid var(--border)'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setClinicalReportStudent(null)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    padding: '9px 18px',
+                    borderRadius: '100px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: 'var(--text-secondary)'
+                  }}
+                >
+                  Close Dossier
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNoteModalStudent(clinicalReportStudent);
+                      setClinicalReportStudent(null);
+                    }}
+                    style={{
+                      background: 'var(--teal-pale)',
+                      color: 'var(--teal)',
+                      border: '1px solid rgba(50, 165, 178, 0.3)',
+                      padding: '9px 18px',
+                      borderRadius: '100px',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <FileText size={15} />
+                    <span>Log Clinical Note</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleStartVideoConsult(clinicalReportStudent);
+                      setClinicalReportStudent(null);
+                    }}
+                    style={{
+                      background: 'var(--brand-blue)',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '9px 20px',
+                      borderRadius: '100px',
+                      fontSize: '0.82rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      boxShadow: '0 4px 14px rgba(38, 118, 166, 0.3)'
+                    }}
+                  >
+                    <Video size={16} />
+                    <span>Start 1:1 Video Consultation</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

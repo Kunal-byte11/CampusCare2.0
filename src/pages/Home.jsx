@@ -37,20 +37,20 @@ export default function Home({ openModal }) {
                 Manage student appointment bookings, review psychological intake assessments, organize folder-based clinical notes with explicit date &amp; time tracking, and connect directly with your engineering department scholars.
               </p>
               <div className="hero-actions">
-                <button className="btn-primary" onClick={() => navigate('/booking')}>
-                  <span>📅</span> Consultation Desk
+                <button className="btn-primary" onClick={() => navigate('/counselor-dashboard')}>
+                  <span>📊</span> Student Behavior Dashboard
                 </button>
-                <button className="btn-secondary" onClick={() => navigate('/counselor-notes')}>
-                  <span>📁</span> Clinical Case Notes
+                <button className="btn-secondary" onClick={() => navigate('/booking')}>
+                  <span>📅</span> Consultation Desk
                 </button>
                 <div className="hero-privacy" style={{ color: 'var(--teal)' }}>
                   🔒 Confidential Student Clinical Records
                 </div>
               </div>
               <div className="hero-features">
-                <div className="feature-card" onClick={() => navigate('/counselor-notes')} style={{ cursor: 'pointer' }}>
-                  <h4>📁 Folder System</h4>
-                  <p>Organize case files per student with full student dossier, date, and time.</p>
+                <div className="feature-card" onClick={() => navigate('/counselor-dashboard')} style={{ cursor: 'pointer' }}>
+                  <h4>📊 Behavioral Intelligence</h4>
+                  <p>Track student risk levels, exam panic spikes, and Sarthi AI emotion cues.</p>
                 </div>
                 <div className="feature-card" onClick={() => navigate('/booking')} style={{ cursor: 'pointer' }}>
                   <h4>📅 Live Session Desk</h4>
@@ -64,7 +64,52 @@ export default function Home({ openModal }) {
                 <span style={{ color: 'var(--teal)' }}>●</span> Welcome, <strong>{user?.anonId || 'LTCE Scholar'}</strong>
               </div>
               <h1 className="hero-title">Support when you need it—<br />private, fast, and caring.</h1>
-              <p className="hero-sub">Chat with our AI first-aid bot, book a counselor, explore coping tools, or connect with peers. Anonymous by default. Your privacy is protected.</p>
+              <p className="hero-sub">Chat with our AI assistant Sarthi, book a counselor, explore coping tools, or connect with peers. Anonymous by default. Your privacy is protected.</p>
+
+              {/* Confidential Intake Assessment Banner */}
+              <div 
+                onClick={() => openModal && openModal('assessment')}
+                style={{
+                  background: 'var(--brand-blue-pale)',
+                  border: '1px solid rgba(38, 118, 166, 0.3)',
+                  borderRadius: '14px',
+                  padding: '14px 18px',
+                  marginBottom: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  boxShadow: 'var(--shadow-subtle)'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.86rem', fontWeight: 700, color: 'var(--brand-blue)' }}>
+                    <span>🌿</span>
+                    <span>Confidential Mental Wellness Check-In (PHQ-9 &amp; GAD-7)</span>
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    Quick 2-minute assessment. Your responses help Ms. Shahista Kazi guide campus mental wellness support.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  style={{
+                    background: 'var(--brand-blue)',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '100px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  Start Check-In →
+                </button>
+              </div>
+
               <div className="hero-actions">
                 <button className="btn-primary" onClick={handleStartChat}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
