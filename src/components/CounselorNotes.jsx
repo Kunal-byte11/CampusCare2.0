@@ -743,7 +743,9 @@ export default function CounselorNotes({
             <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
               {currentFolder?.email && (
                 <a
-                  href={`mailto:${currentFolder.email}?subject=CampusCare Consultation with Counselor ${counselorName}&body=Dear ${currentFolder.name},%0D%0A%0D%0AThis is counselor ${counselorName} regarding our clinical consultation notes.`}
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(currentFolder.email)}&su=${encodeURIComponent(`CampusCare Consultation with Counselor ${counselorName}`)}&body=${encodeURIComponent(`Dear ${currentFolder.name},\n\nThis is counselor ${counselorName} regarding our clinical consultation notes.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{
                     padding: '0.5rem 0.85rem',
                     borderRadius: '8px',
@@ -757,8 +759,9 @@ export default function CounselorNotes({
                     alignItems: 'center',
                     gap: '4px'
                   }}
+                  title="Open Gmail Web App to email student"
                 >
-                  <span>✉️</span> Email Student
+                  <span>✉️</span> Email (Gmail Web App)
                 </a>
               )}
               <button

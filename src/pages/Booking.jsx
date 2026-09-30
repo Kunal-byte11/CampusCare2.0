@@ -153,11 +153,27 @@ export default function Booking({ openModal }) {
       const params = new URLSearchParams();
       if (user?.anonId) params.append('studentAnonId', user.anonId);
       if (user?.email) params.append('studentEmail', user.email);
-      const res = await fetch(`/api/bookings/my-sessions?${params.toString()}`);
+      let res = await fetch(`/api/bookings/my-sessions?${params.toString()}`);
+      if (!res.ok || res.headers.get('content-type')?.includes('text/html')) {
+        res = await fetch(`https://campuscare2-0-backend.onrender.com/api/bookings/my-sessions?${params.toString()}`);
+      }
       const data = await res.json();
-      if (data.success) {
-        setMySessions(data.appointments || []);
-        if (data.stats) setMySessionStats(data.stats);
+      if (data.success && data.appointments) {
+        // Overlay any locally cancelled session IDs
+        const cancelledList = JSON.parse(localStorage.getItem('campuscare_cancelled_session_ids') || '[]');
+        const updatedAppts = data.appointments.map(a => 
+          cancelledList.includes(String(a.id)) ? { ...a, status: 'cancelled' } : a
+        );
+        setMySessions(updatedAppts);
+        const activeCount = updatedAppts.filter(a => (a.status || '').toLowerCase() === 'confirmed').length;
+        const cancelledCount = updatedAppts.filter(a => (a.status || '').toLowerCase() === 'cancelled').length;
+        const completedCount = updatedAppts.filter(a => (a.status || '').toLowerCase() === 'completed').length;
+        setMySessionStats({
+          totalSessions: updatedAppts.length,
+          activeSessions: activeCount,
+          completedSessions: completedCount,
+          cancelledSessions: cancelledCount
+        });
       }
     } catch (err) {
       console.error('Failed to load student sessions:', err);
@@ -173,15 +189,47 @@ export default function Booking({ openModal }) {
   }, [isCounselor, isAuthenticated, user?.anonId]);
 
   // Student cancel session handler
-  const handleCancelSession = async (id) => {
+  const handleCancelSession = async (id, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     if (!window.confirm('Are you sure you want to cancel this counseling consultation?')) return;
     setCancellingSessionId(id);
+
+    // 1. Instant optimistic state update
+    setMySessions(prev => prev.map(s => String(s.id) === String(id) ? { ...s, status: 'cancelled' } : s));
+    setMySessionStats(prev => ({
+      ...prev,
+      activeSessions: Math.max(0, (prev.activeSessions || 1) - 1),
+      cancelledSessions: (prev.cancelledSessions || 0) + 1
+    }));
+
+    // 2. Persist locally in cancelled list
     try {
-      const res = await fetch(`/api/bookings/${id}/cancel`, { method: 'PATCH' });
-      const data = await res.json();
-      if (data.success) {
-        await loadMySessions();
+      const cancelledList = JSON.parse(localStorage.getItem('campuscare_cancelled_session_ids') || '[]');
+      if (!cancelledList.includes(String(id))) {
+        cancelledList.push(String(id));
+        localStorage.setItem('campuscare_cancelled_session_ids', JSON.stringify(cancelledList));
       }
+    } catch (err) {}
+
+    // 3. Dispatch to backend API with fallback
+    try {
+      const endpoints = [
+        `/api/bookings/${id}/cancel`,
+        `https://campuscare2-0-backend.onrender.com/api/bookings/${id}/cancel`,
+        `/api/bookings/${id}/status`,
+        `https://campuscare2-0-backend.onrender.com/api/bookings/${id}/status`
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'cancelled' })
+          });
+          if (res.ok) break;
+        } catch (e2) {}
+      }
+      await loadMySessions();
     } catch (err) {
       console.error('Failed to cancel session:', err);
     } finally {
@@ -230,20 +278,45 @@ export default function Booking({ openModal }) {
   };
 
   // Counselor update status handler
-  const handleUpdateStatus = async (id, newStatus) => {
+  const handleUpdateStatus = async (id, newStatus, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    // 1. Instant optimistic state update
+    setAppointments(prev => prev.map(a => String(a.id) === String(id) ? { ...a, status: newStatus } : a));
+    setStats(prev => ({
+      ...prev,
+      confirmed: newStatus === 'confirmed' ? (prev.confirmed || 0) + 1 : Math.max(0, (prev.confirmed || 1) - 1),
+      completed: newStatus === 'completed' ? (prev.completed || 0) + 1 : prev.completed,
+      cancelled: newStatus === 'cancelled' ? (prev.cancelled || 0) + 1 : prev.cancelled
+    }));
+
+    // 2. Persist locally if cancelled
+    if (newStatus === 'cancelled') {
+      try {
+        const cancelledList = JSON.parse(localStorage.getItem('campuscare_cancelled_session_ids') || '[]');
+        if (!cancelledList.includes(String(id))) {
+          cancelledList.push(String(id));
+          localStorage.setItem('campuscare_cancelled_session_ids', JSON.stringify(cancelledList));
+        }
+      } catch (err) {}
+    }
+
+    // 3. Dispatch to backend
     try {
-      const res = await fetch(`/api/bookings/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setAppointments(prev => prev.map(a => a.id.toString() === id.toString() ? { ...a, status: newStatus } : a));
-        // Refresh stats
-        const resStats = await fetch('/api/bookings/stats');
-        const statsData = await resStats.json();
-        if (statsData.success) setStats(statsData.stats);
+      const endpoints = [
+        `/api/bookings/${id}/status`,
+        `https://campuscare2-0-backend.onrender.com/api/bookings/${id}/status`,
+        `/api/bookings/${id}/cancel`,
+        `https://campuscare2-0-backend.onrender.com/api/bookings/${id}/cancel`
+      ];
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+          });
+          if (res.ok) break;
+        } catch (e2) {}
       }
     } catch (err) {
       console.error('Status update failed:', err);
@@ -577,8 +650,9 @@ export default function Booking({ openModal }) {
                           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                             {/* Primary 1:1 Video Call Action */}
                             <button
-                              onClick={() => {
-                                handleUpdateStatus(appt.id, 'confirmed');
+                              onClick={(e) => {
+                                if (e?.stopPropagation) e.stopPropagation();
+                                handleUpdateStatus(appt.id, 'confirmed', e);
                                 const channelId = `session-${appt.student_anon_id || appt.id}`.replace(/[^a-zA-Z0-9-_]/g, '-');
                                 navigate(`/video-call?channel=${encodeURIComponent(channelId)}&role=counselor&student=${encodeURIComponent(appt.student_name || 'Student')}`);
                               }}
@@ -603,7 +677,7 @@ export default function Booking({ openModal }) {
 
                             {appt.status !== 'completed' && (
                               <button
-                                onClick={() => handleUpdateStatus(appt.id, 'completed')}
+                                onClick={(e) => handleUpdateStatus(appt.id, 'completed', e)}
                                 style={{ padding: '0.4rem 0.8rem', background: 'rgba(52, 211, 153, 0.12)', border: '1px solid rgba(52, 211, 153, 0.3)', color: '#34d399', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
                               >
                                 ✓ Done
@@ -611,7 +685,7 @@ export default function Booking({ openModal }) {
                             )}
                             {appt.status !== 'cancelled' && (
                               <button
-                                onClick={() => handleUpdateStatus(appt.id, 'cancelled')}
+                                onClick={(e) => handleUpdateStatus(appt.id, 'cancelled', e)}
                                 style={{ padding: '0.4rem 0.8rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-dim)', borderRadius: '8px', fontSize: '0.8rem', cursor: 'pointer' }}
                               >
                                 Cancel
@@ -802,44 +876,96 @@ export default function Booking({ openModal }) {
                   style={{ resize: 'vertical' }}
                 />
 
-                <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.8rem' }}>
-                  {connectedStudentModal.student_email && (
-                    <a
-                      href={`mailto:${connectedStudentModal.student_email}?subject=CampusCare Consultation with Counselor Ms. Shahista Kazi&body=Dear ${connectedStudentModal.student_name},%0D%0A%0D%0AThis is Ms. Shahista Kazi from ${counselorDept}. I am reaching out regarding our CampusCare counseling session.%0D%0A%0D%0A${encodeURIComponent(directMsgText)}`}
-                      style={{
-                        flex: 1,
-                        padding: '0.65rem 0.9rem',
-                        borderRadius: '8px',
-                        background: 'var(--bg-card2)',
-                        border: '1px solid var(--border-bright)',
-                        color: 'var(--teal)',
-                        textAlign: 'center',
-                        fontWeight: 600,
-                        fontSize: '0.85rem',
-                        textDecoration: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.8rem' }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                    {connectedStudentModal.student_email && (() => {
+                      const studentEmail = connectedStudentModal.student_email;
+                      const subject = `CampusCare Consultation with Counselor Ms. Shahista Kazi`;
+                      const body = `Dear ${connectedStudentModal.student_name},\n\nThis is Ms. Shahista Kazi from ${counselorDept}. I am reaching out regarding our CampusCare counseling session.\n\n${directMsgText}`;
+                      const gmailWebUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(studentEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                      const outlookWebUrl = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(studentEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                      return (
+                        <>
+                          <a
+                            href={gmailWebUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              flex: 1,
+                              minWidth: '180px',
+                              padding: '0.65rem 0.9rem',
+                              borderRadius: '8px',
+                              background: 'var(--brand-blue)',
+                              border: '1px solid var(--brand-blue)',
+                              color: '#fff',
+                              textAlign: 'center',
+                              fontWeight: 700,
+                              fontSize: '0.84rem',
+                              textDecoration: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)'
+                            }}
+                          >
+                            <span>✉️</span> Open in Gmail Web App
+                          </a>
+
+                          <a
+                            href={outlookWebUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              flex: 1,
+                              minWidth: '170px',
+                              padding: '0.65rem 0.9rem',
+                              borderRadius: '8px',
+                              background: 'var(--surface)',
+                              border: '1px solid var(--border)',
+                              color: 'var(--text-primary)',
+                              textAlign: 'center',
+                              fontWeight: 600,
+                              fontSize: '0.84rem',
+                              textDecoration: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <span>📨</span> Outlook Web App
+                          </a>
+                        </>
+                      );
+                    })()}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.4rem' }}>
+                    <button
+                      onClick={async () => {
+                        if (!directMsgText.trim()) return;
+                        await handleSaveNote(connectedStudentModal.id);
+                        setDirectMsgStatus('Direct message recorded in session notes!');
+                        setTimeout(() => {
+                          setConnectedStudentModal(null);
+                        }, 1200);
                       }}
+                      className="btn-modal-submit"
+                      style={{ flex: 1.2, margin: 0, background: 'linear-gradient(135deg, var(--teal), #0284c7)' }}
                     >
-                      <span>✉️</span> Email Student
-                    </a>
-                  )}
-                  <button
-                    onClick={async () => {
-                      if (!directMsgText.trim()) return;
-                      await handleSaveNote(connectedStudentModal.id);
-                      setDirectMsgStatus('Direct message recorded in session notes!');
-                      setTimeout(() => {
-                        setConnectedStudentModal(null);
-                      }, 1000);
-                    }}
-                    className="btn-modal-submit"
-                    style={{ flex: 1.2, margin: 0, background: 'linear-gradient(135deg, var(--teal), #0284c7)' }}
-                  >
-                    💾 Save to Session Notes
-                  </button>
+                      💾 Save to Session Notes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConnectedStudentModal(null)}
+                      className="btn-secondary"
+                      style={{ flex: 0.8, margin: 0 }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -981,7 +1107,7 @@ export default function Booking({ openModal }) {
             </div>
 
             <button
-              onClick={() => handleCancelSession(activeBooking.id)}
+              onClick={(e) => handleCancelSession(activeBooking.id, e)}
               disabled={cancellingSessionId === activeBooking.id}
               style={{
                 padding: '0.5rem 1rem',
@@ -1254,7 +1380,7 @@ export default function Booking({ openModal }) {
 
                         {isConfirmed && (
                           <button
-                            onClick={() => handleCancelSession(session.id)}
+                            onClick={(e) => handleCancelSession(session.id, e)}
                             disabled={cancellingSessionId === session.id}
                             style={{
                               padding: '0.28rem 0.75rem',

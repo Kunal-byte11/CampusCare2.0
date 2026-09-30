@@ -1105,8 +1105,14 @@ export default function CounselorProfile() {
                 <Mail size={16} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Official Email</div>
-                  <a href={`mailto:${profile.email}`} style={{ color: 'var(--brand-blue)', textDecoration: 'none', fontWeight: 500 }}>
-                    {profile.email}
+                  <a 
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: 'var(--brand-blue)', textDecoration: 'none', fontWeight: 500 }}
+                    title="Open in Gmail Web App"
+                  >
+                    {profile.email} ↗
                   </a>
                 </div>
               </div>
