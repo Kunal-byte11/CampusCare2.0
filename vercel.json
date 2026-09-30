@@ -5,8 +5,23 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://campuscare2-0-backend.onrender.com/api/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
+        }
+      ]
     }
   ]
 }

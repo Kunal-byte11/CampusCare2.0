@@ -59,12 +59,13 @@ router.post('/', async (req, res) => {
       try {
         const apiKey = process.env.GEMINI_API_KEY;
         if (apiKey) {
-          const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent?key=${apiKey}`;
+          const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
           const ttsRes = await fetch(ttsUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(1800),
             body: JSON.stringify({
-              contents: [{ parts: [{ text: reply.slice(0, 300) }] }]
+              contents: [{ parts: [{ text: reply.slice(0, 180) }] }]
             })
           });
           if (ttsRes.ok) {
@@ -77,7 +78,7 @@ router.post('/', async (req, res) => {
           }
         }
       } catch (audioErr) {
-        console.warn('[Direct Audio Gen Notice]', audioErr.message);
+        // Fallback gracefully without blocking
       }
     }
 

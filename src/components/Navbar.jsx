@@ -94,8 +94,8 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
               <Link to="/" className={`nav-link ${path === '/' || path === '/home' ? 'active' : ''}`}>
                 Home
               </Link>
-              <button className="nav-link nav-link-btn-trigger" onClick={promptLogin} title="Login to access AI Chatbot">
-                <span>AI Chatbot</span>
+              <button className="nav-link nav-link-btn-trigger" onClick={promptLogin} title="Login to access Sarthi">
+                <span>Sarthi</span>
                 <span className="nav-lock-badge">🔒</span>
               </button>
               <button className="nav-link nav-link-btn-trigger" onClick={promptLogin} title="Login to access Counselor Booking">
@@ -122,6 +122,13 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
               {isCounselor ? (
                 <>
                   <Link 
+                    to="/counselor-dashboard" 
+                    className={`nav-link ${path === '/counselor-dashboard' || path === '/counselor/dashboard' || path === '/behavior-dashboard' ? 'active' : ''}`} 
+                    style={{ color: 'var(--brand-blue)', fontWeight: 700 }}
+                  >
+                    📊 Student Behavior
+                  </Link>
+                  <Link 
                     to="/booking" 
                     className={`nav-link ${isAppointmentsRoute ? 'active' : ''}`} 
                     style={{ color: 'var(--teal)', fontWeight: 600 }}
@@ -135,6 +142,9 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
                   >
                     📁 Clinical Notes
                   </Link>
+                  <Link to="/video-call" className={`nav-link ${path === '/video-call' ? 'active' : ''}`}>
+                    📹 Video Call
+                  </Link>
                   <Link 
                     to="/counselor-profile" 
                     className={`nav-link ${path === '/counselor-profile' || path === '/counselor/profile' || path === '/profile' ? 'active' : ''}`} 
@@ -144,25 +154,27 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
                   </Link>
                 </>
               ) : (
-                <Link to="/booking" className={`nav-link ${path === '/booking' ? 'active' : ''}`}>
-                  Booking
-                </Link>
+                <>
+                  <Link to="/booking" className={`nav-link ${path === '/booking' ? 'active' : ''}`}>
+                    Booking
+                  </Link>
+                  <Link to="/chatbot" className={`nav-link ${path === '/chatbot' ? 'active' : ''}`}>
+                    Sarthi
+                  </Link>
+                  <Link to="/video-call" className={`nav-link ${path === '/video-call' ? 'active' : ''}`}>
+                    📹 Video Call
+                  </Link>
+                  <Link to="/resources" className={`nav-link ${path === '/resources' ? 'active' : ''}`}>
+                    Resources
+                  </Link>
+                  <Link to="/forum" className={`nav-link ${path === '/forum' ? 'active' : ''}`}>
+                    Forum
+                  </Link>
+                  <Link to="/gamification" className={`nav-link ${path === '/gamification' ? 'active' : ''}`}>
+                    Gamification
+                  </Link>
+                </>
               )}
-              <Link to="/chatbot" className={`nav-link ${path === '/chatbot' ? 'active' : ''}`}>
-                Chatbot
-              </Link>
-              <Link to="/video-call" className={`nav-link ${path === '/video-call' ? 'active' : ''}`}>
-                📹 Video Call
-              </Link>
-              <Link to="/resources" className={`nav-link ${path === '/resources' ? 'active' : ''}`}>
-                Resources
-              </Link>
-              <Link to="/forum" className={`nav-link ${path === '/forum' ? 'active' : ''}`}>
-                Forum
-              </Link>
-              <Link to="/gamification" className={`nav-link ${path === '/gamification' ? 'active' : ''}`}>
-                Gamification
-              </Link>
             </>
           )}
         </div>
@@ -247,16 +259,18 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
                 </div>
               )}
 
-              <Link 
-                to="/chatbot" 
-                className="btn-talk desktop-only" 
-                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                </svg>
-                Talk now
-              </Link>
+              {!isCounselor && (
+                <Link 
+                  to="/chatbot" 
+                  className="btn-talk desktop-only" 
+                  style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                  </svg>
+                  Talk now
+                </Link>
+              )}
 
               <button className="btn-logout desktop-only" onClick={handleLogout} title="Log out of session">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -291,7 +305,7 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
       <div className={`mobile-nav-drawer ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="mobile-nav-header">
           <div className="mobile-nav-title">
-            {isAuthenticated ? 'Student Portal' : 'Navigation'}
+            {isAuthenticated ? (isCounselor ? 'Counselor Portal' : 'Student Portal') : 'Navigation'}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
@@ -316,7 +330,7 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
               <div className="mobile-nav-section-label">Restricted Member Features</div>
               <button className="mobile-nav-link mobile-nav-btn-locked" onClick={promptLogin}>
                 <span className="mn-icon">💬</span>
-                <span>AI Chatbot</span>
+                <span>Sarthi</span>
                 <span className="mn-lock">🔒</span>
               </button>
               <button className="mobile-nav-link mobile-nav-btn-locked" onClick={promptLogin}>
@@ -348,12 +362,12 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
               {isCounselor ? (
                 <>
                   <Link 
-                    to="/counselor-profile" 
-                    className={`mobile-nav-link ${path === '/counselor-profile' || path === '/counselor/profile' || path === '/profile' ? 'active' : ''}`} 
+                    to="/counselor-dashboard" 
+                    className={`mobile-nav-link ${path === '/counselor-dashboard' || path === '/counselor/dashboard' || path === '/behavior-dashboard' ? 'active' : ''}`} 
                     onClick={closeMobileMenu}
                   >
-                    <span className="mn-icon">👩‍🏫</span>
-                    <span>Counselor Profile</span>
+                    <span className="mn-icon">📊</span>
+                    <span>Student Behavior Dashboard</span>
                   </Link>
                   <Link 
                     to="/booking" 
@@ -371,33 +385,51 @@ export default function Navbar({ theme, toggleTheme, openModal }) {
                     <span className="mn-icon">📁</span>
                     <span>Student Clinical Notes</span>
                   </Link>
+                  <Link 
+                    to="/video-call" 
+                    className={`mobile-nav-link ${path === '/video-call' ? 'active' : ''}`} 
+                    onClick={closeMobileMenu}
+                  >
+                    <span className="mn-icon">📹</span>
+                    <span>1:1 Video Consultation</span>
+                  </Link>
+                  <Link 
+                    to="/counselor-profile" 
+                    className={`mobile-nav-link ${path === '/counselor-profile' || path === '/counselor/profile' || path === '/profile' ? 'active' : ''}`} 
+                    onClick={closeMobileMenu}
+                  >
+                    <span className="mn-icon">👩‍🏫</span>
+                    <span>Counselor Profile</span>
+                  </Link>
                 </>
               ) : (
-                <Link to="/booking" className={`mobile-nav-link ${path === '/booking' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                  <span className="mn-icon">📅</span>
-                  <span>Book Counselor</span>
-                </Link>
+                <>
+                  <Link to="/booking" className={`mobile-nav-link ${path === '/booking' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <span className="mn-icon">📅</span>
+                    <span>Book Counselor</span>
+                  </Link>
+                  <Link to="/chatbot" className={`mobile-nav-link ${path === '/chatbot' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <span className="mn-icon">💬</span>
+                    <span>Sarthi</span>
+                  </Link>
+                  <Link to="/video-call" className={`mobile-nav-link ${path === '/video-call' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <span className="mn-icon">📹</span>
+                    <span>Video Call</span>
+                  </Link>
+                  <Link to="/resources" className={`mobile-nav-link ${path === '/resources' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <span className="mn-icon">📚</span>
+                    <span>Self-Care Library</span>
+                  </Link>
+                  <Link to="/forum" className={`mobile-nav-link ${path === '/forum' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <span className="mn-icon">👥</span>
+                    <span>Peer Forum</span>
+                  </Link>
+                  <Link to="/gamification" className={`mobile-nav-link ${path === '/gamification' ? 'active' : ''}`} onClick={closeMobileMenu}>
+                    <span className="mn-icon">🏆</span>
+                    <span>Your Progress</span>
+                  </Link>
+                </>
               )}
-              <Link to="/chatbot" className={`mobile-nav-link ${path === '/chatbot' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <span className="mn-icon">💬</span>
-                <span>AI Chatbot</span>
-              </Link>
-              <Link to="/video-call" className={`mobile-nav-link ${path === '/video-call' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <span className="mn-icon">📹</span>
-                <span>Video Call</span>
-              </Link>
-              <Link to="/resources" className={`mobile-nav-link ${path === '/resources' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <span className="mn-icon">📚</span>
-                <span>Self-Care Library</span>
-              </Link>
-              <Link to="/forum" className={`mobile-nav-link ${path === '/forum' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <span className="mn-icon">👥</span>
-                <span>Peer Forum</span>
-              </Link>
-              <Link to="/gamification" className={`mobile-nav-link ${path === '/gamification' ? 'active' : ''}`} onClick={closeMobileMenu}>
-                <span className="mn-icon">🏆</span>
-                <span>Your Progress</span>
-              </Link>
             </>
           )}
         </div>

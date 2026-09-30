@@ -574,21 +574,39 @@ export default function Booking({ openModal }) {
 
                         {/* Counselor Actions Bar */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.8rem', borderTop: '1px solid var(--border)', paddingTop: '0.9rem' }}>
-                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                            {/* Primary 1:1 Video Call Action */}
+                            <button
+                              onClick={() => {
+                                handleUpdateStatus(appt.id, 'confirmed');
+                                const channelId = `session-${appt.student_anon_id || appt.id}`.replace(/[^a-zA-Z0-9-_]/g, '-');
+                                navigate(`/video-call?channel=${encodeURIComponent(channelId)}&role=counselor&student=${encodeURIComponent(appt.student_name || 'Student')}`);
+                              }}
+                              style={{
+                                padding: '0.45rem 1rem',
+                                background: 'linear-gradient(135deg, #2563eb, #06b6d4)',
+                                border: 'none',
+                                color: '#ffffff',
+                                borderRadius: '8px',
+                                fontSize: '0.82rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+                              }}
+                              title="Accept student booking and start 1:1 live consultation"
+                            >
+                              <span>📹</span> Accept &amp; Start 1:1 Video
+                            </button>
+
                             {appt.status !== 'completed' && (
                               <button
                                 onClick={() => handleUpdateStatus(appt.id, 'completed')}
                                 style={{ padding: '0.4rem 0.8rem', background: 'rgba(52, 211, 153, 0.12)', border: '1px solid rgba(52, 211, 153, 0.3)', color: '#34d399', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
                               >
-                                ✓ Mark Completed
-                              </button>
-                            )}
-                            {appt.status !== 'confirmed' && (
-                              <button
-                                onClick={() => handleUpdateStatus(appt.id, 'confirmed')}
-                                style={{ padding: '0.4rem 0.8rem', background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', color: '#60a5fa', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
-                              >
-                                Re-activate Session
+                                ✓ Done
                               </button>
                             )}
                             {appt.status !== 'cancelled' && (
@@ -1281,15 +1299,40 @@ export default function Booking({ openModal }) {
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        padding: '0.65rem 0.95rem',
-                        background: 'rgba(20, 184, 166, 0.06)',
-                        border: '1px solid rgba(20, 184, 166, 0.2)',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '10px',
+                        padding: '0.75rem 1rem',
+                        background: 'rgba(20, 184, 166, 0.08)',
+                        border: '1px solid rgba(20, 184, 166, 0.25)',
                         borderRadius: '10px',
-                        fontSize: '0.82rem',
-                        color: 'var(--teal)'
+                        fontSize: '0.82rem'
                       }}>
-                        <span>ℹ️</span> Please arrive at {session.venue || 'Room 204, Student Counseling Wing'} at your confirmed time slot.
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--teal)' }}>
+                          <span>ℹ️</span>
+                          <span>Online 1:1 consultation is ready with Ms. Shahista Kazi.</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const channelId = `session-${session.student_anon_id || user?.anonId || session.id}`.replace(/[^a-zA-Z0-9-_]/g, '-');
+                            navigate(`/video-call?channel=${encodeURIComponent(channelId)}&role=student`);
+                          }}
+                          style={{
+                            padding: '0.4rem 0.95rem',
+                            background: 'linear-gradient(135deg, var(--teal), #0284c7)',
+                            border: 'none',
+                            color: '#ffffff',
+                            borderRadius: '7px',
+                            fontWeight: 700,
+                            fontSize: '0.8rem',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          <span>📹</span> Join 1:1 Video Consultation
+                        </button>
                       </div>
                     ) : isCancelled ? (
                       <div style={{

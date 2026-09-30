@@ -29,12 +29,10 @@ export default function Chatbot() {
     {
       id: 1,
       type: 'bot',
-      text: `Hello${user?.name ? ' ' + user.name.split(' ')[0] : ''}. I'm your CampusCare AI Companion, guarded by Jev System 1 safety.\n\nThis is a 100% confidential, anonymous space for LTCE students. How are you feeling right now?`,
-      jev: {
+      text: `Namaste${user?.name ? ' ' + user.name.split(' ')[0] : ''}! I am Manas Sarthi (मानस सारथी), your trusted CampusCare Wellness Companion.\n\nThis is a 100% confidential and safe space for LTCE students. How are you feeling today?`,
+      safety: {
         category: 'GENERAL_WELLNESS',
-        risk_level: 'GREEN',
-        severity_score: 2,
-        confidence: 0.98
+        risk_level: 'GREEN'
       }
     }
   ]);
@@ -45,8 +43,6 @@ export default function Chatbot() {
   const [showBreathingGuide, setShowBreathingGuide] = useState(false);
   const [activeCrisisCard, setActiveCrisisCard] = useState(null);
   const [activeEscalation, setActiveEscalation] = useState(false);
-  const [jevStatus, setJevStatus] = useState({ active: true, latency: '4ms' });
-
   const [speechNotice, setSpeechNotice] = useState('');
   const chatEndRef = useRef(null);
 
@@ -81,18 +77,6 @@ export default function Chatbot() {
     scrollToBottom();
   }, [messages, loading, showBreathingGuide, activeCrisisCard]);
 
-  // Fetch engine status once on mount
-  useEffect(() => {
-    fetch('/api/chat/status')
-      .then(r => r.json())
-      .then(d => {
-        if (d.jev_system_one) {
-          setJevStatus({ active: true, latency: d.jev_system_one.triage_latency });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   // Send Message Handler
   const handleSend = async (textOverride) => {
     const textToSend = typeof textOverride === 'string' ? textOverride : inputText.trim();
@@ -109,6 +93,7 @@ export default function Chatbot() {
     const shouldPlayAudio = autoSpeak || wasSpokenInputRef.current;
 
     try {
+      // 1. Fetch text reply with high priority (instant sub-second response)
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -116,7 +101,7 @@ export default function Chatbot() {
           message: textToSend,
           history: messages.slice(-8),
           studentAnonId: user?.id || 'anon_student',
-          returnAudio: shouldPlayAudio
+          returnAudio: false // Do not block text response with heavy audio synthesis
         })
       });
 
@@ -148,15 +133,16 @@ export default function Chatbot() {
         type: 'bot',
         text: data.reply,
         jev: data.jev,
-        audioBase64: data.audioBase64,
-        audioMimeType: data.audioMimeType
+        audioBase64: null,
+        audioMimeType: null
       };
 
       setMessages(prev => [...prev, botMsg]);
+      setLoading(false); // Stop loading immediately!
 
-      // Auto Read-Aloud if enabled or if user spoke via microphone
+      // 2. Play speech immediately using native browser TTS or async server audio
       if (shouldPlayAudio) {
-        speak(data.reply, data.audioBase64, data.audioMimeType);
+        speak(data.reply);
       }
       wasSpokenInputRef.current = false;
 
@@ -183,10 +169,6 @@ export default function Chatbot() {
     }
   };
 
-  const formatJevCategory = (cat) => {
-    if (!cat) return 'Wellness Check';
-    return cat.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-  };
 
   return (
     <div style={{
@@ -238,9 +220,8 @@ export default function Chatbot() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
-                  CampusCare AI Companion
+                  Manas Sarthi (मानस सारथी)
                 </h2>
-                {/* Jev System 1 Indicator Badge */}
                 <span style={{
                   background: 'rgba(34, 197, 94, 0.15)',
                   border: '1px solid #22c55e',
@@ -254,11 +235,11 @@ export default function Chatbot() {
                   gap: '4px'
                 }}>
                   <Activity size={12} />
-                  <span>Jev System 1 Safe</span>
+                  <span>Confidential & Safe</span>
                 </span>
               </div>
               <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                LTCE Student Mental Wellness · Instant Response · 100% Anonymous
+                LTCE Student Mental Wellness · Instant Support · 100% Anonymous
               </p>
             </div>
           </div>
@@ -452,7 +433,7 @@ export default function Chatbot() {
                 {m.text}
               </div>
 
-              {/* Bot Message Voice Control Bar & Jev System 1 Micro Tag */}
+              {/* Bot Message Voice Control Bar */}
               {m.type === 'bot' && (
                 <div style={{
                   display: 'flex',
@@ -484,23 +465,6 @@ export default function Chatbot() {
                     <Volume2 size={13} />
                     <span>Play Voice</span>
                   </button>
-
-                  {m.jev && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      color: 'var(--text-muted, #64748b)'
-                    }}>
-                      <span>⚡ Jev: <strong>{formatJevCategory(m.jev.category)}</strong></span>
-                      {m.jev.severity_score && (
-                        <span>• Stress {m.jev.severity_score}/10</span>
-                      )}
-                      {m.jev.confidence && (
-                        <span>• Conf: {Math.round(m.jev.confidence * 100)}%</span>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -522,7 +486,7 @@ export default function Chatbot() {
                 <Bot size={16} style={{ color: 'var(--brand-blue)' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span>Jev evaluating intent & formulating response...</span>
+                <span>Formulating response...</span>
               </div>
             </div>
           )}

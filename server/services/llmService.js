@@ -4,7 +4,7 @@
  */
 
 const CAMPUS_SYSTEM_PROMPT = `
-You are the CampusCare AI Mental Wellness Companion at Lokmanya Tilak College of Engineering (LTCE).
+You are Manas Sarthi (मानस सारथी), the trusted Mental Wellness Companion at Lokmanya Tilak College of Engineering (LTCE).
 
 CRITICAL RESPONSE LENGTH & SPEED RULES:
 1. STRICT BREVITY: Respond in STRICTLY 2 to 3 short sentences (maximum 50 to 60 words total).
@@ -17,7 +17,7 @@ CRITICAL RESPONSE LENGTH & SPEED RULES:
  * Generate empathetic response with Google Gemini
  */
 async function callGemini(apiKey, prompt, history, jevContext) {
-  const models = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  const models = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-pro'];
 
   const contents = [];
   if (Array.isArray(history)) {
@@ -42,11 +42,12 @@ async function callGemini(apiKey, prompt, history, jevContext) {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(3500),
         body: JSON.stringify({
           contents,
           generationConfig: {
             temperature: 0.5,
-            maxOutputTokens: 120,
+            maxOutputTokens: 100,
           }
         })
       });

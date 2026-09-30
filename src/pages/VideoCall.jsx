@@ -22,7 +22,6 @@ import {
   Lock,
   Clock,
   HeartPulse,
-  Settings2,
   UserCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -197,6 +196,11 @@ function RemoteVideoPlayer({ user, fit = 'cover' }) {
         console.warn('Agora videoTrack.play notice:', err);
       }
     }
+    return () => {
+      try {
+        user?.videoTrack?.stop();
+      } catch (e) {}
+    };
   }, [user?.uid, user?.videoTrack, fit]);
 
   return (
@@ -215,56 +219,64 @@ function RemoteVideoPlayer({ user, fit = 'cover' }) {
   );
 }
 
-// Dedicated Local Video Player Component
+// Dedicated Local Video Player Component (Persistent container prevents Agora unmount crashes)
 function LocalVideoPlayer({ track, isCameraOff, mirror = false }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
     const el = containerRef.current;
-    if (el && track && !isCameraOff) {
+    if (el && track) {
       try {
         track.play(el, { fit: 'cover', mirror });
       } catch (err) {
         console.warn('Local track.play notice:', err);
       }
     }
-  }, [track, isCameraOff, mirror]);
-
-  if (isCameraOff) {
-    return (
-      <div style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        color: '#94a3b8'
-      }}>
-        <div style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.06)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '12px'
-        }}>
-          <VideoOff size={28} color="#94a3b8" />
-        </div>
-        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f1f5f9' }}>Camera is Muted</span>
-        <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Audio is still transmitting</span>
-      </div>
-    );
-  }
+    return () => {
+      try {
+        track?.stop();
+      } catch (e) {}
+    };
+  }, [track, mirror]);
 
   return (
-    <div 
-      ref={containerRef} 
-      style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }} 
-    />
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      <div 
+        ref={containerRef} 
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          display: isCameraOff ? 'none' : 'block' 
+        }} 
+      />
+      {isCameraOff && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          color: '#94a3b8'
+        }}>
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '10px'
+          }}>
+            <VideoOff size={24} color="#94a3b8" />
+          </div>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f1f5f9' }}>Camera is Off</span>
+          <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '3px' }}>Audio is still active</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -277,6 +289,7 @@ export default function VideoCall() {
   const searchParams = new URLSearchParams(location.search);
   const initialChannel = searchParams.get('channel') || 'campuscare-session-1';
   const isPeer = searchParams.get('peer') === 'true';
+  const autoJoin = searchParams.get('autojoin') === 'true';
 
   // Call States
   const [callState, setCallState] = useState('precall'); // 'precall' | 'incall' | 'postcall'
@@ -315,46 +328,6 @@ export default function VideoCall() {
   const [studentRefId, setStudentRefId] = useState('');
 
   const isCounselor = user?.role === 'counselor' || user?.name?.toLowerCase().includes('shahista') || isPeer;
-
-  const handleSaveNotes = async (e) => {
-    e?.preventDefault();
-    if (!clinicalObservations.trim()) {
-      alert('Please enter clinical observations before saving.');
-      return;
-    }
-    setNoteSaving(true);
-    setNoteSavedMsg('');
-
-    try {
-      const res = await fetch('/api/bookings/notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentAnonId: studentRefId.trim() || 'anon_student_call',
-          studentName: 'Student Consultation',
-          fileName: `Session_${Date.now()}.note`,
-          title: noteTitle.trim() || 'Consultation Note',
-          category: noteCategory,
-          severity: noteSeverity,
-          clinicalObservations: clinicalObservations.trim(),
-          actionPlan: actionPlan.trim()
-        })
-      });
-
-      if (res.ok) {
-        setNoteSavedMsg('✓ Notes saved securely to clinical case files');
-        setTimeout(() => setNoteSavedMsg(''), 4000);
-      } else {
-        const data = await res.json();
-        alert('Failed to save notes: ' + (data.error || 'Server error'));
-      }
-    } catch (err) {
-      console.error('Error saving clinical notes:', err);
-      alert('Network error saving notes.');
-    } finally {
-      setNoteSaving(false);
-    }
-  };
 
   // Refs
   const clientRef = useRef(null);
@@ -460,22 +433,36 @@ export default function VideoCall() {
     };
   }, [localVideoTrack, localAudioTrack]);
 
+  // Auto-join helper for peer tab
+  useEffect(() => {
+    if (autoJoin && localVideoTrack && callState === 'precall' && !isConnecting) {
+      const timer = setTimeout(() => {
+        joinCall();
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [autoJoin, localVideoTrack, callState]);
+
   // Toggle Microphone
   const toggleMic = () => {
+    const next = !isMuted;
     if (localAudioTrack) {
-      const next = !isMuted;
-      localAudioTrack.setEnabled(!next);
-      setIsMuted(next);
+      try {
+        localAudioTrack.setEnabled(!next);
+      } catch (e) {}
     }
+    setIsMuted(next);
   };
 
   // Toggle Camera
   const toggleCamera = () => {
+    const next = !isCameraOff;
     if (localVideoTrack) {
-      const next = !isCameraOff;
-      localVideoTrack.setEnabled(!next);
-      setIsCameraOff(next);
+      try {
+        localVideoTrack.setEnabled(!next);
+      } catch (e) {}
     }
+    setIsCameraOff(next);
   };
 
   // Toggle Screen Share
@@ -485,21 +472,28 @@ export default function VideoCall() {
 
     if (!isScreenSharing) {
       try {
-        const screenTrack = await AgoraRTC.createScreenVideoTrack({ encoderConfig: '720p_2' });
+        const sTrack = await AgoraRTC.createScreenVideoTrack({ encoderConfig: '720p_2' }, 'disable');
+        const screenTrack = Array.isArray(sTrack) ? sTrack[0] : sTrack;
         screenTrackRef.current = screenTrack;
 
         if (localVideoTrack) {
-          await clientRef.current.unpublish(localVideoTrack);
+          try {
+            await clientRef.current.unpublish(localVideoTrack);
+          } catch (e) {}
         }
         await clientRef.current.publish(screenTrack);
         setIsScreenSharing(true);
 
         screenTrack.on('track-ended', async () => {
-          await clientRef.current.unpublish(screenTrack);
-          screenTrack.close();
+          try {
+            await clientRef.current.unpublish(screenTrack);
+            screenTrack.close();
+          } catch (e) {}
           screenTrackRef.current = null;
-          if (localVideoTrack) {
-            await clientRef.current.publish(localVideoTrack);
+          if (localVideoTrack && !isCameraOff) {
+            try {
+              await clientRef.current.publish(localVideoTrack);
+            } catch (e) {}
           }
           setIsScreenSharing(false);
         });
@@ -508,12 +502,16 @@ export default function VideoCall() {
       }
     } else {
       if (screenTrackRef.current) {
-        await clientRef.current.unpublish(screenTrackRef.current);
-        screenTrackRef.current.close();
+        try {
+          await clientRef.current.unpublish(screenTrackRef.current);
+          screenTrackRef.current.close();
+        } catch (e) {}
         screenTrackRef.current = null;
       }
-      if (localVideoTrack) {
-        await clientRef.current.publish(localVideoTrack);
+      if (localVideoTrack && !isCameraOff) {
+        try {
+          await clientRef.current.publish(localVideoTrack);
+        } catch (e) {}
       }
       setIsScreenSharing(false);
     }
@@ -534,12 +532,15 @@ export default function VideoCall() {
       // Generate numeric UID for Agora
       const myUid = Math.floor(100000 + Math.random() * 899999);
 
-      // Fetch Token from Backend
+      // Fetch Token from Backend (with direct Render fallback)
       let appId = 'f34d04a684d742d4bd1a009585690ff7';
       let token = null;
 
       try {
-        const tokenRes = await fetch(`/api/agora/token?channelName=${encodeURIComponent(cleanRoom)}&uid=${myUid}`);
+        let tokenRes = await fetch(`/api/agora/token?channelName=${encodeURIComponent(cleanRoom)}&uid=${myUid}`);
+        if (!tokenRes.ok || tokenRes.headers.get('content-type')?.includes('text/html')) {
+          tokenRes = await fetch(`https://campuscare2-0-backend.onrender.com/api/agora/token?channelName=${encodeURIComponent(cleanRoom)}&uid=${myUid}`);
+        }
         if (tokenRes.ok) {
           const data = await tokenRes.json();
           appId = data.appId || appId;
@@ -547,6 +548,14 @@ export default function VideoCall() {
         }
       } catch (tErr) {
         console.warn('Backend token endpoint warning:', tErr);
+        try {
+          const directRes = await fetch(`https://campuscare2-0-backend.onrender.com/api/agora/token?channelName=${encodeURIComponent(cleanRoom)}&uid=${myUid}`);
+          if (directRes.ok) {
+            const d = await directRes.json();
+            appId = d.appId || appId;
+            token = d.token;
+          }
+        } catch (e2) {}
       }
 
       // Create Agora Client
@@ -555,43 +564,46 @@ export default function VideoCall() {
 
       // Event: Remote User Published Video / Audio
       client.on('user-published', async (remoteUser, mediaType) => {
-        await client.subscribe(remoteUser, mediaType);
-        
-        if (mediaType === 'video') {
+        try {
+          await client.subscribe(remoteUser, mediaType);
+          
           setRemoteUsers(prev => ({
             ...prev,
-            [remoteUser.uid]: remoteUser
+            [remoteUser.uid]: {
+              uid: remoteUser.uid,
+              videoTrack: mediaType === 'video' ? remoteUser.videoTrack : prev[remoteUser.uid]?.videoTrack,
+              audioTrack: mediaType === 'audio' ? remoteUser.audioTrack : prev[remoteUser.uid]?.audioTrack,
+              hasVideo: mediaType === 'video' ? true : (prev[remoteUser.uid]?.hasVideo ?? false),
+              hasAudio: mediaType === 'audio' ? true : (prev[remoteUser.uid]?.hasAudio ?? false)
+            }
           }));
 
-          // Direct playback fallback on next tick
-          setTimeout(() => {
-            const playerEl = document.getElementById(`agora-remote-player-${remoteUser.uid}`);
-            if (playerEl && remoteUser.videoTrack) {
-              try {
-                remoteUser.videoTrack.play(playerEl, { fit: 'cover' });
-              } catch (e) {
-                console.warn('Direct remote play notice:', e);
-              }
-            }
-          }, 150);
-        }
-        if (mediaType === 'audio') {
-          remoteUser.audioTrack?.play();
+          if (mediaType === 'audio') {
+            remoteUser.audioTrack?.play()?.catch(err => console.warn('Audio play autoplay prompt:', err));
+          }
+        } catch (subErr) {
+          console.warn('Agora subscribe notice:', subErr);
         }
       });
 
-      // Event: Remote User Unpublished
+      // Event: Remote User Unpublished Track (Do NOT delete user; just flag track off)
       client.on('user-unpublished', (remoteUser, mediaType) => {
-        if (mediaType === 'video') {
-          setRemoteUsers(prev => {
-            const next = { ...prev };
-            delete next[remoteUser.uid];
-            return next;
-          });
-        }
+        setRemoteUsers(prev => {
+          if (!prev[remoteUser.uid]) return prev;
+          return {
+            ...prev,
+            [remoteUser.uid]: {
+              ...prev[remoteUser.uid],
+              videoTrack: mediaType === 'video' ? null : prev[remoteUser.uid].videoTrack,
+              hasVideo: mediaType === 'video' ? false : prev[remoteUser.uid].hasVideo,
+              audioTrack: mediaType === 'audio' ? null : prev[remoteUser.uid].audioTrack,
+              hasAudio: mediaType === 'audio' ? false : prev[remoteUser.uid].hasAudio
+            }
+          };
+        });
       });
 
-      // Event: Remote User Left
+      // Event: Remote User Left Room (Clean delete)
       client.on('user-left', (remoteUser) => {
         setRemoteUsers(prev => {
           const next = { ...prev };
@@ -607,7 +619,7 @@ export default function VideoCall() {
       // Publish Local Tracks
       const tracksToPublish = [];
       if (localAudioTrack) tracksToPublish.push(localAudioTrack);
-      if (localVideoTrack) tracksToPublish.push(localVideoTrack);
+      if (localVideoTrack && !isCameraOff) tracksToPublish.push(localVideoTrack);
 
       if (tracksToPublish.length > 0) {
         await client.publish(tracksToPublish);
@@ -632,6 +644,12 @@ export default function VideoCall() {
   // Leave Call
   const leaveCall = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (screenTrackRef.current) {
+      try {
+        screenTrackRef.current.close();
+      } catch (e) {}
+      screenTrackRef.current = null;
+    }
     if (clientRef.current) {
       try {
         await clientRef.current.leave();
@@ -640,9 +658,68 @@ export default function VideoCall() {
     setCallState('postcall');
   };
 
+  // Save Clinical Consultation Notes (with proxy + direct Render fallback)
+  const handleSaveNotes = async (e) => {
+    e?.preventDefault();
+    if (!clinicalObservations.trim()) {
+      alert('Please enter clinical observations before saving.');
+      return;
+    }
+    setNoteSaving(true);
+    setNoteSavedMsg('');
+
+    const payload = {
+      studentAnonId: studentRefId.trim() || 'anon_student_call',
+      studentName: 'Student Consultation',
+      fileName: `Session_${Date.now()}.note`,
+      title: noteTitle.trim() || 'Consultation Note',
+      category: noteCategory,
+      severity: noteSeverity,
+      clinicalObservations: clinicalObservations.trim(),
+      actionPlan: actionPlan.trim()
+    };
+
+    try {
+      let res;
+      try {
+        res = await fetch('/api/bookings/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok || res.headers.get('content-type')?.includes('text/html')) {
+          res = await fetch('https://campuscare2-0-backend.onrender.com/api/bookings/notes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        }
+      } catch (err1) {
+        res = await fetch('https://campuscare2-0-backend.onrender.com/api/bookings/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (res && res.ok) {
+        setNoteSavedMsg('✓ Notes saved securely to clinical case files');
+        setTimeout(() => setNoteSavedMsg(''), 4000);
+      } else {
+        const data = await res?.json().catch(() => ({}));
+        alert('Failed to save notes: ' + (data?.error || 'Server error'));
+      }
+    } catch (err) {
+      console.error('Error saving clinical notes:', err);
+      alert('Network error saving notes.');
+    } finally {
+      setNoteSaving(false);
+    }
+  };
+
   // Helper: Open 2nd participant in new tab on this laptop
   const openSecondTabTest = () => {
-    const url = `${window.location.origin}/video-call?channel=${encodeURIComponent(channelName)}&peer=true`;
+    const url = `${window.location.origin}/video-call?channel=${encodeURIComponent(channelName)}&peer=true&autojoin=true`;
     window.open(url, '_blank', 'width=960,height=760');
   };
 
@@ -799,7 +876,7 @@ export default function VideoCall() {
                       fontSize: '0.72rem',
                       fontWeight: 500
                     }}>
-                      {isVirtualCam ? 'Synthetic Feed (No Camera Conflict)' : 'Physical Webcam'}
+                      {isVirtualCam ? 'Synthetic Feed (Webcam Busy / Mirrored Safe)' : 'Physical Webcam'}
                     </span>
                   </div>
 
@@ -1074,7 +1151,7 @@ export default function VideoCall() {
                         <span>Testing Alone on 1 Laptop?</span>
                       </div>
                       <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        Open counselor peer tab to experience live 2-way WebRTC video &amp; audio.
+                        Click below to open the counselor peer window and auto-connect!
                       </div>
                     </div>
                     <button
@@ -1292,12 +1369,58 @@ export default function VideoCall() {
               <div style={{ width: '100%', height: '100%', position: 'relative' }}>
                 {remoteList.map(u => (
                   <div key={u.uid} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
-                    <RemoteVideoPlayer user={u} fit="cover" />
+                    {u.hasVideo && u.videoTrack ? (
+                      <RemoteVideoPlayer user={u} fit="cover" />
+                    ) : (
+                      /* Remote user turned off camera or audio-only: show elegant presence card */
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'radial-gradient(circle at center, #1e293b 0%, #090f17 100%)'
+                      }}>
+                        <div style={{
+                          width: '120px',
+                          height: '120px',
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '3.6rem',
+                          boxShadow: '0 0 40px rgba(37, 99, 235, 0.4)',
+                          marginBottom: '16px'
+                        }}>
+                          {isCounselor ? '🎓' : '👩‍⚕️'}
+                        </div>
+                        <h3 style={{ color: '#fff', fontSize: '1.25rem', margin: '0 0 6px', fontWeight: 700 }}>
+                          {isCounselor ? 'Student' : 'Dr. Shahista Kazi (Campus Psychologist)'}
+                        </h3>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: 'rgba(34, 197, 94, 0.15)',
+                          border: '1px solid #22c55e',
+                          color: '#86efac',
+                          padding: '6px 14px',
+                          borderRadius: '100px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600
+                        }}>
+                          <Volume2 size={15} />
+                          <span>Participant Camera Off • Audio Active</span>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Remote Participant Name Tag */}
                     <div style={{
                       position: 'absolute',
-                      bottom: '90px',
+                      bottom: '96px',
                       left: '24px',
                       background: 'rgba(15, 23, 42, 0.85)',
                       backdropFilter: 'blur(8px)',

@@ -103,34 +103,49 @@ export default function Gamification() {
 
     const todayStr = new Date().toISOString().split('T')[0];
     const todayDay = new Date().getDay();
+    const isKunal = (userIdentifier || '').toLowerCase().includes('kunaldubey975@gmail.com') || (userIdentifier || '').toLowerCase().includes('kunal');
+    const initialXp = isKunal ? 780 : 520;
+    const initialStreak = isKunal ? 6 : 4;
+    const initialMinutes = isKunal ? 65 : 35;
+    const initialJournalsCount = isKunal ? 3 : 2;
 
     return {
       userId: userIdentifier,
-      daysStreak: 4,
+      daysStreak: initialStreak,
       lastCheckInDate: todayStr,
-      minutesMeditated: 35,
-      journalsCompleted: 2,
-      xp: 520,
+      minutesMeditated: initialMinutes,
+      journalsCompleted: initialJournalsCount,
+      xp: initialXp,
       level: 4,
       levelTitle: 'Mindful Explorer',
-      weeklyActivity: [1, 2, 3, todayDay],
-      unlockedBadges: ['first_step', 'streak_3', 'meditator_30', 'level_4'],
+      weeklyActivity: [1, 2, 3, 4, 5, todayDay],
+      unlockedBadges: isKunal 
+        ? ['first_step', 'streak_3', 'streak_7', 'meditator_30', 'level_4']
+        : ['first_step', 'streak_3', 'meditator_30', 'level_4'],
       recentJournals: [
         {
           id: 'j-1',
           date: todayStr,
-          time: '09:15 AM',
+          time: '08:45 AM',
           mood: '😌 Calm',
           prompt: 'Morning Intention',
-          text: 'Taking a 5-minute pause before my laboratory sessions. Focused on breathing through academic stress.'
+          text: 'Completed 10 minutes of box breathing before my Data Science lab at LTCE. Feeling focused and calm.'
         },
         {
           id: 'j-2',
           date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-          time: '08:30 PM',
+          time: '09:15 PM',
           mood: '💪 Focused',
           prompt: 'Evening Reflection',
-          text: 'Successfully handled assignment deadlines today without getting overwhelmed.'
+          text: 'Submitted my semester mini-project on time. Successfully managed project viva using grounding techniques.'
+        },
+        {
+          id: 'j-3',
+          date: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0],
+          time: '07:30 PM',
+          mood: '✨ Grateful',
+          prompt: 'Gratitude Check-in',
+          text: 'Grateful for study group discussions with classmates. Mind feels refreshed after 4-7-8 breathing.'
         }
       ]
     };

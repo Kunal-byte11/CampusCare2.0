@@ -12,11 +12,12 @@ import Resources from './pages/Resources';
 import Forum from './pages/Forum';
 import Gamification from './pages/Gamification';
 import CounselorProfile from './pages/CounselorProfile';
+import CounselorDashboard from './pages/CounselorDashboard';
 import VideoCall from './pages/VideoCall';
 import EmergencyFooter from './components/EmergencyFooter';
 
 function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <>
@@ -42,11 +43,11 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
         {/* Student Portal Mental Wellness Chatbot (Anonymous Safe Space) */}
         <Route
           path="/chatbot"
-          element={<Chatbot openModal={openModal} />}
+          element={user?.role === 'counselor' ? <Navigate to="/counselor-dashboard" replace /> : <Chatbot openModal={openModal} />}
         />
         <Route
           path="/chat"
-          element={<Chatbot openModal={openModal} />}
+          element={user?.role === 'counselor' ? <Navigate to="/counselor-dashboard" replace /> : <Chatbot openModal={openModal} />}
         />
         {/* Counselor & Booking Routes */}
         <Route
@@ -69,7 +70,7 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
           path="/counselor"
           element={
             <ProtectedRoute openModal={openModal}>
-              <Booking openModal={openModal} />
+              <CounselorDashboard />
             </ProtectedRoute>
           }
         />
@@ -77,7 +78,7 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
           path="/counselor-dashboard"
           element={
             <ProtectedRoute openModal={openModal}>
-              <Booking openModal={openModal} />
+              <CounselorDashboard />
             </ProtectedRoute>
           }
         />
@@ -85,7 +86,15 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
           path="/counselor/dashboard"
           element={
             <ProtectedRoute openModal={openModal}>
-              <Booking openModal={openModal} />
+              <CounselorDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/behavior-dashboard"
+          element={
+            <ProtectedRoute openModal={openModal}>
+              <CounselorDashboard />
             </ProtectedRoute>
           }
         />
@@ -147,13 +156,13 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
         />
         <Route
           path="/resources"
-          element={<Resources />}
+          element={user?.role === 'counselor' ? <Navigate to="/counselor-dashboard" replace /> : <Resources />}
         />
         <Route
           path="/forum"
           element={
             <ProtectedRoute openModal={openModal}>
-              <Forum />
+              {user?.role === 'counselor' ? <Navigate to="/counselor-dashboard" replace /> : <Forum />}
             </ProtectedRoute>
           }
         />
@@ -169,7 +178,7 @@ function AppContent({ theme, toggleTheme, activeModal, openModal, closeModal }) 
           path="/gamification"
           element={
             <ProtectedRoute openModal={openModal}>
-              <Gamification />
+              {user?.role === 'counselor' ? <Navigate to="/counselor-dashboard" replace /> : <Gamification />}
             </ProtectedRoute>
           }
         />

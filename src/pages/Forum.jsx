@@ -18,35 +18,64 @@ const getTagColor = (tag) => {
 const INITIAL_FALLBACK_POSTS = [
   {
     id: '1',
-    authorName: 'BlueSky42',
+    authorName: 'Aarav Sharma (3rd Year CSE)',
     createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-    tag: 'Anxiety',
-    title: 'Panic attacks during exams — anyone else?',
-    body: "I've been having really intense panic attacks right before big tests. Even when I've studied a lot. Does anyone have tips for managing this?",
-    likes: 24,
+    tag: 'Academic Stress',
+    title: 'Managing University semester exams with back-to-back KT practicals',
+    body: "Final year projects and 6th-sem submissions are piling up right before internal tests. If anyone else is feeling swamped, remember to take short breaks. What helps you manage the workload?",
+    likes: 38,
     comments: [
-      { id: 'c1', authorName: 'WellnessGuide', body: 'Box breathing really helps me. 4 seconds in, 4 hold, 4 out, 4 hold.', createdAt: new Date(Date.now() - 3600000).toISOString(), likes: 5 }
+      { id: 'c1', authorName: 'Priya Deshmukh (2nd Year AIML)', body: 'Pomodoro timer (25 min study, 5 min walk) really saved me during unit tests!', createdAt: new Date(Date.now() - 3600000).toISOString(), likes: 12 },
+      { id: 'c2', authorName: 'Rohan Patil (Mechanical)', body: 'Also talk to Ms. Shahista Kazi at the wellness desk, her time management sheet helps.', createdAt: new Date(Date.now() - 1800000).toISOString(), likes: 7 }
     ]
   },
   {
     id: '2',
-    authorName: 'AnonymousStudent',
+    authorName: 'Sneha Kulkarni (1st Year Data Science)',
     createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
-    tag: 'Loneliness',
-    title: 'Feeling really disconnected since moving to campus',
-    body: "It's my first semester and I haven't really made any close friends. Everyone seems to already have their groups. It gets really lonely on weekends.",
-    likes: 45,
-    comments: []
+    tag: 'Anxiety',
+    title: 'Presentation anxiety during Seminar reviews — anyone else?',
+    body: "Every time I stand up in front of faculty for viva or project PPTs, my heart races and my hands start trembling. Any grounding techniques that work in the moment?",
+    likes: 42,
+    comments: [
+      { id: 'c3', authorName: 'Aditya Verma (4th Year IT)', body: 'Try the 4-7-8 breathing exercise in CampusCare before walking in. Inhale 4s, hold 7s, exhale 8s. Calms the nervous system instantly.', createdAt: new Date(Date.now() - 4 * 3600000).toISOString(), likes: 15 }
+    ]
   },
   {
     id: '3',
-    authorName: 'NightOwl_99',
-    createdAt: new Date(Date.now() - 24 * 3600000).toISOString(),
+    authorName: 'Tanvi Nair (2nd Year Electronics)',
+    createdAt: new Date(Date.now() - 9 * 3600000).toISOString(),
+    tag: 'Loneliness',
+    title: 'First time staying at Navi Mumbai hostel — missing home food & routine',
+    body: "Shifted from Pune for college. It gets lonely after classes end in the evening. Looking for study buddies or folks who play badminton on campus grounds!",
+    likes: 29,
+    comments: [
+      { id: 'c4', authorName: 'Kavita Joshi (3rd Year CSE)', body: 'Hey Tanvi! A few of us play badminton near the sports complex around 5:30 PM. Feel free to join!', createdAt: new Date(Date.now() - 6 * 3600000).toISOString(), likes: 8 }
+    ]
+  },
+  {
+    id: '4',
+    authorName: 'Vikram Joshi (Final Year Mechanical)',
+    createdAt: new Date(Date.now() - 18 * 3600000).toISOString(),
+    tag: 'Wellness Tips',
+    title: 'Small habit that turned my semester around: 15-min digital detox at night',
+    body: "Stopped scrolling Instagram reels past 11:30 PM. Started reading notes or doing a 5-min calm session on CampusCare. Sleep quality improved noticeably and morning lectures feel manageable.",
+    likes: 54,
+    comments: [
+      { id: 'c5', authorName: 'Ananya Iyer (2nd Year IT)', body: '100% agree, blue light right before bed really ruins REM sleep.', createdAt: new Date(Date.now() - 12 * 3600000).toISOString(), likes: 11 }
+    ]
+  },
+  {
+    id: '5',
+    authorName: 'Siddharth Rao (3rd Year CSE-DS)',
+    createdAt: new Date(Date.now() - 28 * 3600000).toISOString(),
     tag: 'Sleep',
-    title: 'Insomnia ruining my mornings',
-    body: "Can't fall asleep until 4 AM most nights. I've tried melatonin, no screens before bed... nothing is working. Just venting.",
-    likes: 18,
-    comments: []
+    title: 'Insomnia before placement season coding rounds',
+    body: "Stressing about campus placements and aptitude cutoffs. Mind keeps reviewing algorithms even at 3 AM. Anyone found a healthy bedtime wind-down routine?",
+    likes: 31,
+    comments: [
+      { id: 'c6', authorName: 'Neha Mehta (Alumni)', body: 'Write down tomorrow\'s 3 priorities on paper before getting into bed. Clears mental RAM so your brain stops looping.', createdAt: new Date(Date.now() - 20 * 3600000).toISOString(), likes: 19 }
+    ]
   }
 ];
 

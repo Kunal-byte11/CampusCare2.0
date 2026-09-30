@@ -74,7 +74,10 @@ export function AuthProvider({ children }) {
       if (event === 'SIGNED_IN' && session) {
         await handleGoogleSession(session);
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
+        // Only clear if the session had a Supabase user
+        if (session?.user) {
+          setUser(null);
+        }
       }
     });
 
@@ -82,6 +85,50 @@ export function AuthProvider({ children }) {
       subscription?.unsubscribe();
     };
   }, []);
+
+  // Handle Google Credential Response from Google Identity Services / OneTap
+  const handleGoogleCredentialResponse = async (credentialResponse) => {
+    try {
+      if (!credentialResponse?.credential) {
+        return { success: false, error: 'No credential returned from Google.' };
+      }
+
+      // Decode Google JWT payload safely
+      const base64Url = credentialResponse.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const googleData = JSON.parse(jsonPayload);
+
+      const response = await fetch('/api/auth/google-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: googleData.email,
+          name: googleData.name || googleData.given_name || 'LTCE Student',
+          googleId: googleData.sub
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        return { success: false, error: data.error || 'Failed to authenticate Google user.' };
+      }
+
+      if (data.token) {
+        localStorage.setItem(TOKEN_KEY, data.token);
+      }
+      setUser(data.user);
+      return { success: true, user: data.user };
+    } catch (err) {
+      console.error('Google credential sync error:', err);
+      return { success: false, error: err.message };
+    }
+  };
 
   // Google OAuth Login
   const loginWithGoogleAuth = async () => {
@@ -262,6 +309,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!(user && user.isAuthenticated),
     login,
     loginWithGoogleAuth,
+    handleGoogleCredentialResponse,
     register,
     registerCounselor,
     logout
